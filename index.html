@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الديون والمخزون - محمي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #f9f4ef;
+            --primary-color: #d4af37;
+            --input-bg-debt: #fce8e8;
+            --input-bg-credit: #e8fce8;
+            --input-bg-stock: #fff3e0;
+            --border-color: #e0e0e0;
+            --text-color: #333;
+            --danger-color: #c62828;
+            --success-color: #2e7d32;
+            --blue-color: #1565c0;
+            --orange-color: #ef6c00;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 100px;
+        }
+
+        /* --- Lock Screen (New) --- */
+        #siteLockOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 100000; /* أعلى طبقة */
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        #siteLockBox {
+            text-align: center; padding: 20px; background: #f9f9f9; 
+            border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%; max-width: 350px;
+        }
+
+        /* --- Header --- */
+        .header {
+            padding: 15px;
+            background-color: #fff8f0;
+            border-bottom: 1px solid #ddd;
+            position: sticky; top: 0; z-index: 50;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .header h3 { font-size: 1.2rem; color: var(--primary-color); margin: 0; }
+
+        /* --- Layout --- */
+        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        .card {
+            background: #fff; border-radius: 12px; padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden;
+        }
+
+        /* --- Forms & Inputs --- */
+        label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #555; font-weight: 500; }
+        input, textarea, select {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color);
+            border-radius: 8px; font-size: 0.95rem; margin-bottom: 15px; outline: none; transition: 0.3s;
+        }
+        
+        /* Colors */
+        .type-debt { background-color: var(--input-bg-debt) !important; color: var(--danger-color); }
+        .type-credit { background-color: var(--input-bg-credit) !important; color: var(--success-color); }
+        .text-red { color: var(--danger-color); }
+        .text-green { color: var(--success-color); }
+        .text-blue { color: var(--blue-color); }
+        .text-orange { color: var(--orange-color); }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;
+        }
+        .btn-save { background: var(--primary-color); color: #fff; width: 100%; margin-top: 5px; }
+        .btn-outline { background: #fff; border: 1px solid #ccc; color: #333; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        
+        .btn-action-group { display: flex; gap: 5px; justify-content: center; }
+        .btn-edit, .btn-delete { padding: 5px 10px; border-radius: 5px; border: none; color: #fff; cursor: pointer; }
+        .btn-edit { background: var(--blue-color); }
+        .btn-delete { background: var(--danger-color); }
+
+        /* --- Filter Tabs --- */
+        .filter-tabs { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 4px; border-radius: 8px; }
+        .filter-tab { flex: 1; text-align: center; padding: 8px; font-size: 0.85rem; cursor: pointer; border-radius: 6px; }
+        .filter-tab.active { background: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* --- Net Type Toggle --- */
+        .net-type-toggle { display: flex; gap: 5px; margin-bottom: 15px; }
+        .net-opt { flex: 1; text-align: center; padding: 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .net-opt.active { font-weight: bold; border-color: var(--primary-color); background: #fff8f0; }
+
+        /* --- Tables --- */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 100%; }
+        th { background: #f4f4f4; padding: 10px; font-size: 0.85rem; white-space: nowrap; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
+        .inventory-table th { background-color: #e3f2fd; color: #1565c0; }
+
+        /* --- Nav --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; background: #fff; height: 70px;
+            display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; border-top: 1px solid #eee;
+        }
+        .nav-item { text-align: center; color: #999; font-size: 0.7rem; flex: 1; cursor: pointer; }
+        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--primary-color); font-weight: bold; }
+
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+
+        /* --- Suggestions --- */
+        .input-wrapper { position: relative; }
+        .suggestions-list {
+            position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd;
+            z-index: 100; max-height: 150px; overflow-y: auto; display: none;
+        }
+        .suggestions-list div { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
+
+        /* Client Profile */
+        #clientProfileView { display: none; }
+        
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 9999;
+            display: none; /* Hidden by default until needed */
+            justify-content: center; align-items: center;
+            font-weight: bold; color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="siteLockOverlay">
+        <div id="siteLockBox">
+            <h3 style="margin-bottom:15px; color:var(--primary-color);">قفل النظام</h3>
+            <p style="margin-bottom:10px; font-size:0.9rem;">الرجاء إدخال كلمة المرور للمتابعة</p>
+            <input type="password" id="sitePassInput" placeholder="Password" style="text-align:center;">
+            <button class="btn btn-save" onclick="unlockSite()">دخول</button>
+        </div>
+    </div>
+
+    <div id="loadingOverlay">جاري الاتصال بقاعدة البيانات...</div>
+
+    <div class="header">
+        <h3 id="pageTitle">إضافة عملية</h3>
+        <div style="font-size:0.8rem; color:#777;">النظام الشامل (Online)</div>
+    </div>
+
+    <div class="container">
+
+        <div id="tab-add" class="tab-section active">
+            <div class="card">
+                <form id="debtForm">
+                    <input type="hidden" id="editId">
+                    <label>تاريخ العملية</label>
+                    <input type="date" id="tDate">
+                    
+                    <label>اسم الزبون / الحساب</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="tName" placeholder="ابحث أو اكتب اسم جديد..." autocomplete="off">
+                        <div id="suggestionsBox" class="suggestions-list"></div>
+                    </div>
+
+                    <label>نوع العملية</label>
+                    <select id="tType" class="type-debt">
+                        <option value="debt">عليه (دين - مطلوب منه)</option>
+                        <option value="credit">له (تسديد - له رصيد)</option>
+                    </select>
+
+                    <label>التفاصيل</label>
+                    <textarea id="tDetails" rows="2" placeholder="تفاصيل..."></textarea>
+
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex:1"><label>المبلغ الكلي</label><input type="number" id="tTotal" placeholder="0"></div>
+                        <div style="flex:1"><label>الواصل</label><input type="number" id="tPaid" value="0"></div>
+                    </div>
+
+                    <label>الباقي (الصافي)</label>
+                    <input type="number" id="tRemaining" readonly style="background:#f4f4f4; text-align:center; font-weight:bold;">
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-save" id="btnSaveDebt"><i class="fas fa-save"></i> حفظ</button>
+                        <button type="button" class="btn btn-outline" style="width:auto;" id="btnResetDebt">جديد</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="tab-log" class="tab-section">
+            <div class="card">
+                <div class="table-container">
+                    <table id="mainLogTable">
+                        <thead><tr><th>إجراء</th><th>الاسم</th><th>التفاصيل</th><th>الباقي</th><th>التاريخ</th></tr></thead>
+                        <tbody id="logBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-clients" class="tab-section">
+            <div id="clientsListView">
+                <div class="card"><input type="text" id="clientSearch" placeholder="بحث عن زبون..." style="margin-bottom:0;"></div>
+                <div id="clientsContainer" class="card" style="padding:0;"></div>
+            </div>
+            
+            <div id="clientProfileView">
+                <button class="btn btn-outline" style="margin-bottom:10px;" id="btnBackToClients"><i class="fas fa-arrow-right"></i> رجوع</button>
+                <div class="card" style="text-align:center;">
+                    <h2 id="pName">الاسم</h2>
+                    <h1 id="pBalance" style="margin:10px 0;">0</h1>
+                    <p id="pStatus">-</p>
+                    <button class="btn btn-delete" style="width:100%; margin-top:10px;" id="btnDeleteClient">حذف الزبون بالكامل</button>
+                </div>
+                <div class="card table-container">
+                    <table><thead><tr><th>إجراء</th><th>تفاصيل</th><th>مبلغ</th><th>تاريخ</th></tr></thead><tbody id="pHistoryBody"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-network" class="tab-section">
+            
+            <div class="card">
+                <h4 style="margin-bottom:10px;">
+                    <i class="fas fa-chart-pie"></i> جرد المخزون حسب الفترة
+                </h4>
+                
+                <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:10px;">
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:0.8rem;">تحديد نوع الخط:</label>
+                        <select id="netFilterType" style="margin:0;">
+                            <option value="all">كل الأنواع</option>
+                        </select>
+                    </div>
+
+                    <label style="font-size:0.8rem; margin-bottom:5px; font-weight:bold;">تحديد الفترة الزمنية (الجرد):</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="flex:1;">
+                            <label style="font-size:0.7rem;">من تاريخ:</label>
+                            <input type="date" id="netDateFrom" style="margin:0; padding:8px;">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:0.7rem;">إلى تاريخ:</label>
+                            <input type="date" id="netDateTo" style="margin:0; padding:8px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="inventory-table">
+                        <thead><tr><th>النوع</th><th>سحب (مخزون)</th><th>مباع</th><th>المتبقي</th></tr></thead>
+                        <tbody id="inventoryBody"></tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.85rem;">
+                    <div style="display:flex; justify-content:space-between;"><span>إجمالي مبيعاتنا:</span><span id="stSales" class="text-green bold">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>علينا للشركة (سحب+ديون):</span><span id="stAlihna" class="text-red bold">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>لنا (تسديدات واصلة):</span><span id="stLana" class="text-green bold">0</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;"><span>صافي ذمة الشركة:</span><span id="stNetComp" class="bold">0</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 style="margin-bottom:15px;">تسجيل حركة (بيع / سحب / ديون)</h4>
+                <form id="networkForm">
+                    <input type="hidden" id="netEditId">
+                    
+                    <div class="net-type-toggle">
+                        <div id="optStock" class="net-opt" data-type="stock">سحب من الشركة</div>
+                        <div id="optSale" class="net-opt active" data-type="sale">بيع للزبون</div>
+                        <div id="optPay" class="net-opt" data-type="pay">ديون الشركة</div>
+                    </div>
+                    <input type="hidden" id="netActionType" value="sale">
+
+                    <label>التاريخ</label>
+                    <input type="date" id="nDate">
+
+                    <div id="stockFields" style="display:none;">
+                        <label style="color:var(--orange-color); font-weight:bold;">نوع الخط (اكتب اسم النوع الجديد)</label>
+                        <input type="text" id="nStockType" placeholder="مثال: خط طالب، خط ذهبي، داتا...">
+                        
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1"><label>العدد المسحوب</label><input type="number" id="nStockQty" placeholder="العدد"></div>
+                            <div style="flex:1"><label>الكلفة الكلية</label><input type="number" id="nStockCost" placeholder="0"></div>
+                        </div>
+                    </div>
+
+                    <div id="saleFields">
+                        <label style="color:var(--blue-color); font-weight:bold;">اختر نوع الخط (من المخزون)</label>
+                        <select id="nSaleType">
+                            </select>
+
+                        <div class="input-wrapper">
+                            <label>اسم الزبون</label>
+                            <input type="text" id="nName" placeholder="الاسم">
+                        </div>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1"><label>العدد المباع</label><input type="number" id="nSaleQty" value="1" placeholder="1"></div>
+                            <div style="flex:2"><label>رقم الهاتف</label><input type="text" id="nPhone"></div>
+                        </div>
+
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1"><label>سعر البيع</label><input type="number" id="nSalePrice"></div>
+                            <div style="flex:1"><label>سعر التكلفة (علينا)</label><input type="number" id="nUnitCost"></div>
+                        </div>
+                    </div>
+
+                    <div id="payFields" style="display:none;">
+                        <label>نوع القيد</label>
+                        <select id="nCompDebtType" class="type-debt">
+                            <option value="lana">لنا (دائن / تسديد واصل لهم)</option>
+                            <option value="alihna">علينا (مدين / دين إضافي)</option>
+                        </select>
+
+                        <label>المبلغ</label>
+                        <input type="number" id="nPayAmount">
+                        <label>التفاصيل</label>
+                        <input type="text" id="nNotes" placeholder="مثال: تسديد للمندوب..">
+                    </div>
+
+                    <button type="button" class="btn btn-save" id="btnSaveNetwork"><i class="fas fa-save"></i> حفظ</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h4 style="margin-bottom:10px;">سجل الحركات</h4>
+                
+                <div class="filter-tabs">
+                    <div class="filter-tab active" data-filter="all">الكل</div>
+                    <div class="filter-tab" data-filter="stock">سحب مخزون</div>
+                    <div class="filter-tab" data-filter="sale">المبيعات</div>
+                    <div class="filter-tab" data-filter="pay">ديون الشركة</div>
+                </div>
+
+                <div class="table-container">
+                    <table id="networkTable">
+                        <thead><tr><th>تعديل</th><th>النوع</th><th>التفاصيل</th><th>العدد/السعر</th><th>التاريخ</th></tr></thead>
+                        <tbody id="networkBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" data-tab="network"><i class="fas fa-boxes"></i> الشبكة</div>
+        <div class="nav-item" data-tab="clients"><i class="fas fa-users"></i> الزبائن</div>
+        <div class="nav-item" data-tab="log"><i class="fas fa-list"></i> الديون</div>
+        <div class="nav-item active" data-tab="add"><i class="fas fa-plus-circle"></i> إضافة</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+        // 1. Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpSnxGwzMmlAei23LVXOsH2vs_cGAMesY",
+            authDomain: "gghdkdi-919dc.firebaseapp.com",
+            projectId: "gghdkdi-919dc",
+            storageBucket: "gghdkdi-919dc.firebasestorage.app",
+            messagingSenderId: "64495333162",
+            appId: "1:64495333162:web:bda1b71b5fd13aacfa3853",
+            measurementId: "G-CRVZ29VQMQ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- GLOBAL VARIABLES ---
+        let transactions = [];
+        let networkData = [];
+        let currentNetFilter = 'all';
+
+        // --- UI ELEMENTS ---
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // --- SITE LOCK LOGIC ---
+        window.unlockSite = function() {
+            const pass = document.getElementById('sitePassInput').value;
+            if(pass === "1001") {
+                document.getElementById('siteLockOverlay').style.display = 'none';
+                // Start loading data ONLY after unlock
+                loadAllData();
+            } else {
+                alert("كلمة المرور خاطئة!");
+            }
+        };
+
+        // --- 1. DATA LOADING FUNCTIONS ---
+        async function loadAllData() {
+            loadingOverlay.style.display = 'flex';
+            try {
+                // Fetch Debts
+                const debtSnapshot = await getDocs(collection(db, "debt_transactions"));
+                transactions = debtSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Fetch Network
+                const netSnapshot = await getDocs(collection(db, "network_transactions"));
+                networkData = netSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Render UI
+                renderLog();
+                populateSaleTypes();
+                renderNetworkLog(currentNetFilter);
+                renderNetworkStats();
+                
+                loadingOverlay.style.display = 'none';
+            } catch (error) {
+                console.error("Error loading data:", error);
+                loadingOverlay.style.display = 'none';
+                alert("خطأ في تحميل البيانات. تأكد من الإنترنت.");
+            }
+        }
+
+        // --- 2. DEBT FUNCTIONS ---
+        
+        // Save Debt
+        window.saveData = async function() {
+            const id = document.getElementById('editId').value;
+            const dataObj = {
+                name: document.getElementById('tName').value.trim(),
+                date: document.getElementById('tDate').value,
+                type: document.getElementById('tType').value,
+                details: document.getElementById('tDetails').value,
+                totalVal: parseFloat(document.getElementById('tTotal').value)||0,
+                paidVal: parseFloat(document.getElementById('tPaid').value)||0,
+                amount: parseFloat(document.getElementById('tRemaining').value)||0
+            };
+
+            if(!dataObj.name || !dataObj.date) return alert('أدخل الاسم والتاريخ');
+
+            loadingOverlay.style.display = 'flex';
+            try {
+                if (id) {
+                    await updateDoc(doc(db, "debt_transactions", id), dataObj);
+                } else {
+                    await addDoc(collection(db, "debt_transactions"), dataObj);
+                }
+                alert('تم الحفظ بنجاح');
+                document.getElementById('debtForm').reset();
+                document.getElementById('editId').value = '';
+                document.getElementById('tDate').value = new Date().toISOString().split('T')[0];
+                updateDebtColors();
+                await loadAllData(); // Refresh
+            } catch (e) {
+                loadingOverlay.style.display = 'none';
+                alert("فشل الحفظ في: debt_transactions\nالسبب: " + e.message);
+            }
+        };
+
+        // Delete Debt
+        window.delTx = async function(id) {
+            if(confirm('حذف؟')) {
+                const pass = prompt("كلمة المرور:");
+                if(pass !== "112") return alert("خطأ");
+
+                loadingOverlay.style.display = 'flex';
+                try {
+                    await deleteDoc(doc(db, "debt_transactions", id));
+                    await loadAllData();
+                } catch (e) {
+                    loadingOverlay.style.display = 'none';
+                    alert("خطأ في الحذف: " + e.message);
+                }
+            }
+        };
+
+        // Edit Debt (UI only)
+        window.editTx = function(id) {
+            const pass = prompt("كلمة المرور:");
+            if(pass !== "112") return alert("خطأ");
+            
+            const t = transactions.find(x => x.id === id);
+            if(t) {
+                document.getElementById('editId').value = t.id;
+                document.getElementById('tName').value = t.name;
+                document.getElementById('tDate').value = t.date;
+                document.getElementById('tType').value = t.type;
+                document.getElementById('tDetails').value = t.details;
+                document.getElementById('tTotal').value = t.totalVal;
+                document.getElementById('tPaid').value = t.paidVal;
+                document.getElementById('tRemaining').value = t.amount;
+                updateDebtColors();
+                switchTab('add', 'تعديل عملية');
+            }
+        };
+
+        // --- 3. NETWORK FUNCTIONS ---
+
+        // Save Network
+        window.saveNetwork = async function() {
+            const id = document.getElementById('netEditId').value;
+            const action = document.getElementById('netActionType').value;
+            const date = document.getElementById('nDate').value;
+
+            let typeVal = '';
+            if(action === 'stock') {
+                typeVal = document.getElementById('nStockType').value.trim();
+                if(!typeVal) return alert('يجب كتابة نوع الخط');
+            } else if (action === 'sale') {
+                typeVal = document.getElementById('nSaleType').value;
+                if(!typeVal) return alert('المخزون فارغ');
+            }
+
+            const dataObj = {
+                date: date,
+                action: action,
+                simType: typeVal,
+                stockQty: parseFloat(document.getElementById('nStockQty').value)||0,
+                stockCost: parseFloat(document.getElementById('nStockCost').value)||0,
+                name: document.getElementById('nName').value,
+                phone: document.getElementById('nPhone').value,
+                salePrice: parseFloat(document.getElementById('nSalePrice').value)||0,
+                unitCost: parseFloat(document.getElementById('nUnitCost').value)||0,
+                saleQty: parseFloat(document.getElementById('nSaleQty').value)||1,
+                payAmount: parseFloat(document.getElementById('nPayAmount').value)||0,
+                compDebtType: document.getElementById('nCompDebtType').value,
+                notes: document.getElementById('nNotes').value
+            };
+
+            // Validations
+            if(action==='stock' && dataObj.stockQty<=0) return alert('العدد مطلوب');
+            if(action==='sale' && dataObj.saleQty<=0) return alert('العدد مطلوب');
+            if(action==='pay' && dataObj.payAmount<=0) return alert('المبلغ مطلوب');
+
+            loadingOverlay.style.display = 'flex';
+            try {
+                if (id) {
+                    await updateDoc(doc(db, "network_transactions", id), dataObj);
+                } else {
+                    await addDoc(collection(db, "network_transactions"), dataObj);
+                }
+                alert('تم الحفظ بنجاح');
+                
+                // Reset Form
+                document.getElementById('networkForm').reset();
+                document.getElementById('netEditId').value = '';
+                document.getElementById('nDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('nSaleQty').value = 1;
+                
+                // Refresh
+                await loadAllData();
+                setNetType('sale'); // Reset view
+
+            } catch (e) {
+                loadingOverlay.style.display = 'none';
+                alert("فشل الحفظ في: network_transactions\nالسبب: " + e.message);
+            }
+        };
+
+        // Delete Network
+        window.delNet = async function(id) {
+            if(confirm('حذف؟')) {
+                const pass = prompt("كلمة المرور:");
+                if(pass !== "112") return alert("خطأ");
+
+                loadingOverlay.style.display = 'flex';
+                try {
+                    await deleteDoc(doc(db, "network_transactions", id));
+                    await loadAllData();
+                } catch (e) {
+                    loadingOverlay.style.display = 'none';
+                    alert("خطأ في الحذف: " + e.message);
+                }
+            }
+        };
+
+        // Edit Network
+        window.editNet = function(id) {
+            const pass = prompt("كلمة المرور:");
+            if(pass !== "112") return alert("خطأ");
+
+            const n = networkData.find(x => x.id === id);
+            if(n) {
+                document.getElementById('netEditId').value = n.id;
+                document.getElementById('nDate').value = n.date;
+                
+                setNetType(n.action);
+
+                if(n.action==='stock') {
+                    document.getElementById('nStockType').value=n.simType;
+                    document.getElementById('nStockQty').value=n.stockQty;
+                    document.getElementById('nStockCost').value=n.stockCost;
+                } else if(n.action==='sale') {
+                    setTimeout(() => { document.getElementById('nSaleType').value=n.simType; }, 100);
+                    document.getElementById('nName').value=n.name;
+                    document.getElementById('nPhone').value=n.phone;
+                    document.getElementById('nSalePrice').value=n.salePrice;
+                    document.getElementById('nUnitCost').value=n.unitCost;
+                    document.getElementById('nSaleQty').value = n.saleQty || 1;
+                } else {
+                    document.getElementById('nPayAmount').value=n.payAmount;
+                    document.getElementById('nNotes').value=n.notes;
+                    document.getElementById('nCompDebtType').value = n.compDebtType || 'lana';
+                    updateCompColors();
+                }
+                // Go to tab and scroll up
+                switchTab('network', 'المخزون');
+                document.querySelector('#tab-network').scrollTop = 0;
+            }
+        };
+
+
+        // --- 4. RENDER & HELPERS ---
+        
+        function renderLog() {
+            const tb = document.getElementById('logBody'); tb.innerHTML='';
+            [...transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+                const tr=document.createElement('tr');
+                tr.innerHTML=`
+                    <td><div class="btn-action-group"><button class="btn-edit" onclick="editTx('${t.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delTx('${t.id}')"><i class="fas fa-trash"></i></button></div></td>
+                    <td>${t.name}</td><td>${t.details}</td><td class="${t.type==='debt'?'text-red':'text-green'} bold">${t.amount}</td><td style="font-size:0.8rem">${t.date}</td>
+                `;
+                tb.appendChild(tr);
+            });
+        }
+
+        function renderNetworkLog(filter) {
+            const tb = document.getElementById('networkBody'); tb.innerHTML='';
+            let data = [...networkData].sort((a,b)=>new Date(b.date)-new Date(a.date));
+            
+            if(filter !== 'all') {
+                data = data.filter(n => n.action === filter);
+            }
+
+            data.forEach(n => {
+                const tr = document.createElement('tr');
+                let typeTxt='', info='', num='';
+                
+                if(n.action==='sale') {
+                    typeTxt=`<span class="text-blue bold">بيع: ${n.simType}</span>`;
+                    info=`${n.name} <br> <small>عدد: ${n.saleQty || 1}</small>`;
+                    num=`<span class="text-green">${n.salePrice}</span>`;
+                } else if(n.action==='stock') {
+                    typeTxt=`<span class="text-orange bold">سحب: ${n.simType}</span>`;
+                    info=`عدد: ${n.stockQty}`;
+                    num=`<span class="text-red">كلفة: ${n.stockCost}</span>`;
+                } else {
+                    const isLana = n.compDebtType === 'lana';
+                    typeTxt=`<span class="${isLana?'text-green':'text-red'} bold">${isLana?'لنا (واصل)':'علينا (دين)'}</span>`;
+                    info=n.notes || '-';
+                    num=n.payAmount;
+                }
+
+                tr.innerHTML=`
+                    <td><div class="btn-action-group"><button class="btn-edit" onclick="editNet('${n.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delNet('${n.id}')"><i class="fas fa-trash"></i></button></div></td>
+                    <td>${typeTxt}</td><td>${info}</td><td class="bold">${num}</td><td style="font-size:0.8rem">${n.date}</td>
+                `;
+                tb.appendChild(tr);
+            });
+        }
+
+        window.renderNetworkStats = function() {
+            const dateFrom = document.getElementById('netDateFrom').value;
+            const dateTo = document.getElementById('netDateTo').value;
+            const typeFilter = document.getElementById('netFilterType').value;
+            const tb = document.getElementById('inventoryBody'); tb.innerHTML='';
+            
+            let totalSales=0, totalAlihna=0, totalLana=0;
+            let report = {}; 
+
+            networkData.forEach(n => {
+                if(dateFrom && n.date < dateFrom) return;
+                if(dateTo && n.date > dateTo) return;
+
+                if(n.action==='stock') {
+                    if(!report[n.simType]) report[n.simType] = {pulled:0, sold:0};
+                    report[n.simType].pulled += n.stockQty;
+                    totalAlihna += n.stockCost; 
+                } else if(n.action==='sale') {
+                    if(!report[n.simType]) report[n.simType] = {pulled:0, sold:0};
+                    report[n.simType].sold += (n.saleQty || 1); 
+                    totalSales += n.salePrice;
+                } else if(n.action==='pay') {
+                    if(n.compDebtType === 'alihna') {
+                        totalAlihna += n.payAmount;
+                    } else {
+                        totalLana += n.payAmount;
+                    }
+                }
+            });
+
+            Object.keys(report).forEach(key => {
+                if(typeFilter !== 'all' && key !== typeFilter) return;
+                const d = report[key];
+                const rem = d.pulled - d.sold;
+                
+                tb.innerHTML += `<tr>
+                    <td class="text-blue bold">${key}</td>
+                    <td class="text-orange">${d.pulled}</td>
+                    <td class="text-green">${d.sold}</td>
+                    <td style="background:#e3f2fd; font-weight:bold;">${rem}</td>
+                </tr>`;
+            });
+
+            if(tb.innerHTML==='') tb.innerHTML='<tr><td colspan="4" style="color:#999">لا توجد بيانات ضمن هذه الفترة</td></tr>';
+
+            const netComp = totalLana - totalAlihna;
+            document.getElementById('stSales').innerText = totalSales.toLocaleString();
+            document.getElementById('stAlihna').innerText = totalAlihna.toLocaleString();
+            document.getElementById('stLana').innerText = totalLana.toLocaleString();
+            const netEl = document.getElementById('stNetComp');
+            netEl.innerText = Math.abs(netComp).toLocaleString();
+            netEl.className = netComp >= 0 ? 'text-green bold' : 'text-red bold';
+            netEl.innerText += (netComp >= 0 ? ' (لنا)' : ' (علينا)');
+        };
+
+        // UI Helpers
+        function switchTab(tabId, title) {
+            document.getElementById('pageTitle').innerText = title;
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const icons = {'network':0, 'clients':1, 'log':2, 'add':3};
+            document.querySelectorAll('.nav-item')[icons[tabId]].classList.add('active');
+            if(tabId==='clients') { 
+                document.getElementById('clientProfileView').style.display='none'; 
+                document.getElementById('clientsListView').style.display='block';
+                renderClientsList(); 
+            }
+        }
+
+        function updateDebtColors() {
+            const type = document.getElementById('tType').value;
+            const bg = type === 'debt' ? '#fce8e8' : '#e8fce8';
+            ['tType','tName','tDetails'].forEach(id => document.getElementById(id).style.background = bg);
+        }
+
+        window.calcRem = function() {
+            const t = parseFloat(document.getElementById('tTotal').value)||0;
+            const p = parseFloat(document.getElementById('tPaid').value)||0;
+            document.getElementById('tRemaining').value = t - p;
+        };
+
+        function populateSaleTypes() {
+            const types = new Set();
+            networkData.forEach(n => { if(n.action === 'stock' && n.simType) types.add(n.simType); });
+            const typeArr = Array.from(types);
+
+            const saleSelect = document.getElementById('nSaleType');
+            const filterSelect = document.getElementById('netFilterType');
+            const currentFilterVal = filterSelect.value;
+
+            saleSelect.innerHTML = '';
+            filterSelect.innerHTML = '<option value="all">كل الأنواع</option>';
+
+            if(typeArr.length === 0) {
+                saleSelect.innerHTML = '<option value="">المخزون فارغ</option>';
+            } else {
+                typeArr.forEach(t => {
+                    const opt1 = document.createElement('option'); opt1.value = t; opt1.innerText = t; saleSelect.appendChild(opt1);
+                    const opt2 = document.createElement('option'); opt2.value = t; opt2.innerText = t; filterSelect.appendChild(opt2);
+                });
+            }
+            filterSelect.value = currentFilterVal;
+        }
+
+        window.setNetType = function(type) {
+            document.getElementById('netActionType').value = type;
+            document.querySelectorAll('.net-opt').forEach(el=>el.classList.remove('active'));
+            
+            document.getElementById('stockFields').style.display = 'none';
+            document.getElementById('saleFields').style.display = 'none';
+            document.getElementById('payFields').style.display = 'none';
+
+            if(type==='sale') { 
+                document.querySelector('.net-opt[data-type="sale"]').classList.add('active'); 
+                document.getElementById('saleFields').style.display = 'block';
+                populateSaleTypes(); 
+            }
+            else if(type==='stock') { 
+                document.querySelector('.net-opt[data-type="stock"]').classList.add('active'); 
+                document.getElementById('stockFields').style.display = 'block';
+            }
+            else { 
+                document.querySelector('.net-opt[data-type="pay"]').classList.add('active'); 
+                document.getElementById('payFields').style.display = 'block';
+                updateCompColors();
+            }
+        };
+
+        window.updateCompColors = function() {
+            const sel = document.getElementById('nCompDebtType');
+            if(sel.value === 'lana') {
+                sel.style.backgroundColor = '#e8fce8'; sel.style.color = 'green';
+            } else {
+                sel.style.backgroundColor = '#fce8e8'; sel.style.color = '#c62828';
+            }
+        };
+
+        window.filterNetLog = function(type, btn) {
+            currentNetFilter = type;
+            document.querySelectorAll('.filter-tab').forEach(e=>e.classList.remove('active'));
+            btn.classList.add('active');
+            renderNetworkLog(type);
+        };
+
+        // Clients Logic
+        window.renderClientsList = function() {
+            const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
+            const s = document.getElementById('clientSearch').value;
+            const map={};
+            transactions.forEach(t=>{ if(!map[t.name])map[t.name]=0; map[t.name]+=(t.type==='debt'?t.amount:-t.amount); });
+            Object.keys(map).filter(n=>n.includes(s)).forEach(n=>{
+                const d=document.createElement('div'); d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; d.style.display='flex'; d.style.justifyContent='space-between';
+                d.innerHTML=`<b>${n}</b><span class="${map[n]>0?'text-red':'text-green'}">${Math.abs(map[n])}</span>`;
+                d.onclick=()=>{ 
+                    document.getElementById('clientsListView').style.display='none';
+                    document.getElementById('clientProfileView').style.display='block';
+                    document.getElementById('pName').innerText=n;
+                    document.getElementById('pBalance').innerText=Math.abs(map[n]);
+                    document.getElementById('pStatus').innerText=map[n]>0?'عليه (دين)':'له (رصيد)';
+                    const ptb=document.getElementById('pHistoryBody'); ptb.innerHTML='';
+                    transactions.filter(t=>t.name===n).forEach(t=>{
+                        ptb.innerHTML+=`<tr><td><button class="btn-delete" onclick="delTx('${t.id}')">x</button></td><td>${t.details}</td><td>${t.amount}</td><td>${t.date}</td></tr>`;
+                    });
+                };
+                cEl.appendChild(d);
+            });
+        };
+
+        // --- EVENTS ---
+        document.getElementById('btnSaveDebt').addEventListener('click', saveData);
+        document.getElementById('btnResetDebt').addEventListener('click', () => { document.getElementById('debtForm').reset(); document.getElementById('tDate').value=new Date().toISOString().split('T')[0]; });
+        
+        document.getElementById('btnSaveNetwork').addEventListener('click', saveNetwork);
+        
+        document.getElementById('tType').addEventListener('change', updateDebtColors);
+        document.getElementById('tTotal').addEventListener('input', calcRem);
+        document.getElementById('tPaid').addEventListener('input', calcRem);
+
+        // Suggestions
+        document.getElementById('tName').addEventListener('input', function() {
+            const val = this.value;
+            const box = document.getElementById('suggestionsBox'); box.innerHTML='';
+            if(val.length<1) { box.style.display='none'; return; }
+            const names = [...new Set(transactions.map(t=>t.name))].filter(n=>n.includes(val));
+            if(names.length>0) {
+                box.style.display='block';
+                names.forEach(n => {
+                    const d=document.createElement('div'); d.innerText=n;
+                    d.onclick=()=>{ document.getElementById('tName').value=n; box.style.display='none'; };
+                    box.appendChild(d);
+                });
+            } else box.style.display='none';
+        });
+
+        // Tabs
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const tab = this.getAttribute('data-tab');
+                let title = 'إضافة';
+                if(tab==='log') title = 'الديون';
+                if(tab==='clients') title = 'الزبائن';
+                if(tab==='network') title = 'المخزون';
+                switchTab(tab, title);
+            });
+        });
+
+        // Filters
+        document.querySelectorAll('.filter-tab').forEach(item => {
+            item.addEventListener('click', function() {
+                filterNetLog(this.getAttribute('data-filter'), this);
+            });
+        });
+
+        // Net Types
+        document.querySelectorAll('.net-opt').forEach(item => {
+            item.addEventListener('click', function() {
+                setNetType(this.getAttribute('data-type'));
+            });
+        });
+
+        // Back Buttons
+        document.getElementById('btnBackToClients').onclick = function() {
+            document.getElementById('clientProfileView').style.display='none'; 
+            document.getElementById('clientsListView').style.display='block';
+        };
+
+        document.getElementById('btnDeleteClient').onclick = async function() {
+             if(confirm('حذف الزبون؟')) {
+                 const pass = prompt("كلمة المرور:");
+                 if(pass !== "112") return alert("خطأ");
+                 
+                 const n=document.getElementById('pName').innerText;
+                 const toDelete = transactions.filter(t=>t.name===n);
+                 
+                 loadingOverlay.style.display = 'flex';
+                 try {
+                     for(let t of toDelete) {
+                         await deleteDoc(doc(db, "debt_transactions", t.id));
+                     }
+                     await loadAllData();
+                     document.getElementById('clientProfileView').style.display='none'; 
+                     document.getElementById('clientsListView').style.display='block';
+                     renderClientsList();
+                 } catch(e) {
+                     loadingOverlay.style.display = 'none';
+                     alert("خطأ: " + e.message);
+                 }
+             }
+        };
+
+        // Dates for Network
+        const dateObj = new Date();
+        const firstDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('netDateFrom').value = firstDay;
+        document.getElementById('netDateTo').value = today;
+        document.getElementById('tDate').value = today;
+        document.getElementById('nDate').value = today;
+
+        document.getElementById('netDateFrom').addEventListener('change', renderNetworkStats);
+        document.getElementById('netDateTo').addEventListener('change', renderNetworkStats);
+        document.getElementById('netFilterType').addEventListener('change', renderNetworkStats);
+        document.getElementById('nCompDebtType').addEventListener('change', updateCompColors);
+
+        // Dont load data yet, wait for unlock
+    </script>
+</body>
+</html>
