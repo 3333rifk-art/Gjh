@@ -10,15 +10,14 @@
 
     <style>
         :root {
-            /* تعديل الألوان لتناسب الخلفية الجديدة */
-            --bg-gradient-start: #efebe9; /* بني فاتح جداً */
-            --bg-gradient-end: #b2ebf2;   /* سمائي فاتح */
+            --bg-gradient-start: #efebe9; 
+            --bg-gradient-end: #b2ebf2;   
             
             --primary-color: #d4af37;
             --input-bg-debt: #fce8e8;
             --input-bg-credit: #e8fce8;
             --input-bg-stock: #fff3e0;
-            --border-color: #ccc; /* تغميق الحدود قليلاً للوضوح */
+            --border-color: #ccc; 
             --text-color: #333;
             --danger-color: #c62828;
             --success-color: #2e7d32;
@@ -35,7 +34,6 @@
         }
 
         body {
-            /* الخلفية بني على سمائي (تدرج) */
             background: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
             min-height: 100vh;
             color: var(--text-color);
@@ -57,7 +55,7 @@
         /* --- Header --- */
         .header {
             padding: 15px;
-            background-color: rgba(255, 248, 240, 0.9); /* شفاف قليلاً */
+            background-color: rgba(255, 248, 240, 0.9); 
             border-bottom: 1px solid #ddd;
             position: sticky; top: 0; z-index: 50;
             display: flex; justify-content: space-between; align-items: center;
@@ -65,10 +63,10 @@
         }
         .header h3 { font-size: 1.2rem; color: var(--primary-color); margin: 0; }
 
-        /* --- Layout (توسيع الصفحة) --- */
+        /* --- Layout --- */
         .container { 
             padding: 15px; 
-            max-width: 98%; /* تم التوسيع ليشغل كامل العرض تقريباً */
+            max-width: 98%; 
             margin: 0 auto; 
         }
         .card {
@@ -76,15 +74,15 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden;
         }
 
-        /* --- Forms & Inputs (توسيع الحقول) --- */
+        /* --- Forms & Inputs --- */
         label { display: block; font-size: 0.95rem; margin-bottom: 8px; color: #444; font-weight: 600; }
         
         input, textarea, select {
             width: 100%; 
-            padding: 16px; /* زيادة الحجم */
+            padding: 16px; 
             border: 1px solid var(--border-color);
             border-radius: 10px; 
-            font-size: 1.1rem; /* تكبير الخط */
+            font-size: 1.1rem; 
             margin-bottom: 20px; 
             outline: none; transition: 0.3s;
         }
@@ -99,7 +97,7 @@
 
         /* --- Buttons --- */
         .btn {
-            padding: 14px; /* تكبير الأزرار */
+            padding: 14px; 
             border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;
         }
@@ -345,8 +343,8 @@
                     <div id="payFields" style="display:none;">
                         <label>نوع القيد</label>
                         <select id="nCompDebtType" class="type-debt">
-                            <option value="lana">لنا (دائن / تسديد واصل لهم)</option>
-                            <option value="alihna">علينا (مدين / دين إضافي)</option>
+                            <option value="lana">دائن (يطلب)</option>
+                            <option value="alihna">مدين (مطلوب)</option>
                         </select>
 
                         <label>المبلغ</label>
@@ -705,7 +703,7 @@
                     num=`<span class="text-red">كلفة: ${n.stockCost}</span>`;
                 } else {
                     const isLana = n.compDebtType === 'lana';
-                    typeTxt=`<span class="${isLana?'text-green':'text-red'} bold">${isLana?'لنا (واصل)':'علينا (دين)'}</span>`;
+                    typeTxt=`<span class="${isLana?'text-green':'text-red'} bold">${isLana?'دائن (يطلب)':'مدين (مطلوب)'}</span>`;
                     info=n.notes || '-';
                     num=n.payAmount;
                 }
