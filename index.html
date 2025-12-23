@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الديون والمخزون - النسخة الموسعة</title>
+    <title>نظام الديون والمخزون - النسخة المعدلة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -109,6 +109,13 @@
         .btn-edit, .btn-delete { padding: 8px 12px; border-radius: 6px; border: none; color: #fff; cursor: pointer; }
         .btn-edit { background: var(--blue-color); }
         .btn-delete { background: var(--danger-color); }
+        
+        /* زر التسديد الجديد في قائمة الزبائن */
+        .btn-repay {
+            background-color: var(--success-color); color: white;
+            padding: 8px 15px; border-radius: 20px; border: none;
+            font-size: 0.85rem; cursor: pointer; margin-right: 10px;
+        }
 
         /* --- Filter Tabs --- */
         .filter-tabs { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 5px; border-radius: 10px; }
@@ -369,7 +376,14 @@
 
                 <div class="table-container">
                     <table id="networkTable">
-                        <thead><tr><th>تعديل</th><th>النوع</th><th>التفاصيل</th><th>العدد/السعر</th><th>التاريخ</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>تعديل</th>
+                                <th>النوع</th>
+                                <th>التفاصيل</th>
+                                <th>العدد</th> <th>الواصل/السعر</th> <th>التاريخ</th>
+                            </tr>
+                        </thead>
                         <tbody id="networkBody"></tbody>
                     </table>
                 </div>
@@ -417,7 +431,6 @@
             const pass = document.getElementById('sitePassInput').value;
             if(pass === "1001") {
                 document.getElementById('siteLockOverlay').style.display = 'none';
-                // Start loading data ONLY after unlock
                 loadAllData();
             } else {
                 alert("كلمة المرور خاطئة!");
@@ -425,12 +438,10 @@
         };
 
         // --- AUTO FILL DEBT LOGIC ---
-        // Helper to get balance
         function getClientBalance(name) {
             let balance = 0;
             transactions.forEach(t => {
                 if(t.name === name) {
-                    // debt = + , credit = -
                     if(t.type === 'debt') balance += t.amount;
                     else balance -= t.amount;
                 }
@@ -438,17 +449,33 @@
             return balance;
         }
 
-        // The auto fill function
         window.autoFillDebt = function(name) {
             const type = document.getElementById('tType').value;
-            // If the transaction type is "Payment" (credit/تسديد)
             if(type === 'credit') {
                 const bal = getClientBalance(name);
-                // If they owe money (balance > 0), fill it in Total
                 if (bal > 0) {
                      document.getElementById('tTotal').value = bal;
-                     calcRem(); // Recalculate remaining
+                     calcRem(); 
                 }
+            }
+        };
+
+        // NEW FUNCTION: Go To Repay Page
+        window.goToRepay = function(name) {
+            switchTab('add', 'إضافة عملية');
+            document.getElementById('tName').value = name;
+            document.getElementById('tType').value = 'credit'; // Set to Payment
+            updateDebtColors();
+            
+            // Auto fill total with current debt
+            const bal = getClientBalance(name);
+            if(bal > 0) {
+                document.getElementById('tTotal').value = bal;
+                // Leave paid empty for user to enter
+                document.getElementById('tPaid').value = '';
+                document.getElementById('tRemaining').value = bal; 
+            } else {
+                document.getElementById('tTotal').value = 0;
             }
         };
 
@@ -456,15 +483,12 @@
         async function loadAllData() {
             loadingOverlay.style.display = 'flex';
             try {
-                // Fetch Debts
                 const debtSnapshot = await getDocs(collection(db, "debt_transactions"));
                 transactions = debtSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Fetch Network
                 const netSnapshot = await getDocs(collection(db, "network_transactions"));
                 networkData = netSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Render UI
                 renderLog();
                 populateSaleTypes();
                 renderNetworkLog(currentNetFilter);
@@ -480,7 +504,6 @@
 
         // --- 2. DEBT FUNCTIONS ---
         
-        // Save Debt
         window.saveData = async function() {
             const id = document.getElementById('editId').value;
             const dataObj = {
@@ -507,14 +530,13 @@
                 document.getElementById('editId').value = '';
                 document.getElementById('tDate').value = new Date().toISOString().split('T')[0];
                 updateDebtColors();
-                await loadAllData(); // Refresh
+                await loadAllData(); 
             } catch (e) {
                 loadingOverlay.style.display = 'none';
                 alert("فشل الحفظ في: debt_transactions\nالسبب: " + e.message);
             }
         };
 
-        // Delete Debt
         window.delTx = async function(id) {
             if(confirm('حذف؟')) {
                 const pass = prompt("كلمة المرور:");
@@ -531,7 +553,6 @@
             }
         };
 
-        // Edit Debt (UI only)
         window.editTx = function(id) {
             const pass = prompt("كلمة المرور:");
             if(pass !== "112") return alert("خطأ");
@@ -553,7 +574,6 @@
 
         // --- 3. NETWORK FUNCTIONS ---
 
-        // Save Network
         window.saveNetwork = async function() {
             const id = document.getElementById('netEditId').value;
             const action = document.getElementById('netActionType').value;
@@ -568,6 +588,14 @@
                 if(!typeVal) return alert('المخزون فارغ');
             }
 
+            // Calculation for Sale Price * Qty
+            let finalSalePrice = parseFloat(document.getElementById('nSalePrice').value)||0;
+            let qty = parseFloat(document.getElementById('nSaleQty').value)||1;
+            
+            if(action === 'sale') {
+                finalSalePrice = finalSalePrice * qty; // Multiply here
+            }
+
             const dataObj = {
                 date: date,
                 action: action,
@@ -576,9 +604,9 @@
                 stockCost: parseFloat(document.getElementById('nStockCost').value)||0,
                 name: document.getElementById('nName').value,
                 phone: document.getElementById('nPhone').value,
-                salePrice: parseFloat(document.getElementById('nSalePrice').value)||0,
+                salePrice: finalSalePrice, // Save the multiplied value
                 unitCost: parseFloat(document.getElementById('nUnitCost').value)||0,
-                saleQty: parseFloat(document.getElementById('nSaleQty').value)||1,
+                saleQty: qty,
                 payAmount: parseFloat(document.getElementById('nPayAmount').value)||0,
                 compDebtType: document.getElementById('nCompDebtType').value,
                 notes: document.getElementById('nNotes').value
@@ -598,15 +626,13 @@
                 }
                 alert('تم الحفظ بنجاح');
                 
-                // Reset Form
                 document.getElementById('networkForm').reset();
                 document.getElementById('netEditId').value = '';
                 document.getElementById('nDate').value = new Date().toISOString().split('T')[0];
                 document.getElementById('nSaleQty').value = 1;
                 
-                // Refresh
                 await loadAllData();
-                setNetType('sale'); // Reset view
+                setNetType('sale'); 
 
             } catch (e) {
                 loadingOverlay.style.display = 'none';
@@ -614,7 +640,6 @@
             }
         };
 
-        // Delete Network
         window.delNet = async function(id) {
             if(confirm('حذف؟')) {
                 const pass = prompt("كلمة المرور:");
@@ -631,7 +656,6 @@
             }
         };
 
-        // Edit Network
         window.editNet = function(id) {
             const pass = prompt("كلمة المرور:");
             if(pass !== "112") return alert("خطأ");
@@ -651,7 +675,10 @@
                     setTimeout(() => { document.getElementById('nSaleType').value=n.simType; }, 100);
                     document.getElementById('nName').value=n.name;
                     document.getElementById('nPhone').value=n.phone;
-                    document.getElementById('nSalePrice').value=n.salePrice;
+                    // Note: This will put the TOTAL price in the input. 
+                    // User might need to manually divide if they want unit price back, 
+                    // but for simplicity we load what was saved.
+                    document.getElementById('nSalePrice').value=n.salePrice; 
                     document.getElementById('nUnitCost').value=n.unitCost;
                     document.getElementById('nSaleQty').value = n.saleQty || 1;
                 } else {
@@ -660,7 +687,6 @@
                     document.getElementById('nCompDebtType').value = n.compDebtType || 'lana';
                     updateCompColors();
                 }
-                // Go to tab and scroll up
                 switchTab('network', 'المخزون');
                 document.querySelector('#tab-network').scrollTop = 0;
             }
@@ -691,26 +717,32 @@
 
             data.forEach(n => {
                 const tr = document.createElement('tr');
-                let typeTxt='', info='', num='';
+                let typeTxt='', info='', qtyCol='', moneyCol='';
                 
                 if(n.action==='sale') {
                     typeTxt=`<span class="text-blue bold">بيع: ${n.simType}</span>`;
-                    info=`${n.name} <br> <small>عدد: ${n.saleQty || 1}</small>`;
-                    num=`<span class="text-green">${n.salePrice}</span>`;
+                    info=`${n.name} <br> <small>${n.phone || ''}</small>`;
+                    qtyCol=`${n.saleQty || 1}`;
+                    moneyCol=`<span class="text-green">${n.salePrice}</span>`;
                 } else if(n.action==='stock') {
                     typeTxt=`<span class="text-orange bold">سحب: ${n.simType}</span>`;
-                    info=`عدد: ${n.stockQty}`;
-                    num=`<span class="text-red">كلفة: ${n.stockCost}</span>`;
+                    info=`-`;
+                    qtyCol=`${n.stockQty}`;
+                    moneyCol=`<span class="text-red">كلفة: ${n.stockCost}</span>`;
                 } else {
                     const isLana = n.compDebtType === 'lana';
                     typeTxt=`<span class="${isLana?'text-green':'text-red'} bold">${isLana?'دائن (يطلب)':'مدين (مطلوب)'}</span>`;
                     info=n.notes || '-';
-                    num=n.payAmount;
+                    qtyCol=`-`;
+                    moneyCol=n.payAmount;
                 }
 
                 tr.innerHTML=`
                     <td><div class="btn-action-group"><button class="btn-edit" onclick="editNet('${n.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delNet('${n.id}')"><i class="fas fa-trash"></i></button></div></td>
-                    <td>${typeTxt}</td><td>${info}</td><td class="bold">${num}</td><td style="font-size:0.8rem">${n.date}</td>
+                    <td>${typeTxt}</td><td>${info}</td>
+                    <td class="bold" style="text-align:center;">${qtyCol}</td>
+                    <td class="bold">${moneyCol}</td>
+                    <td style="font-size:0.8rem">${n.date}</td>
                 `;
                 tb.appendChild(tr);
             });
@@ -791,7 +823,6 @@
             const bg = type === 'debt' ? '#fce8e8' : '#e8fce8';
             ['tType','tName','tDetails'].forEach(id => document.getElementById(id).style.background = bg);
             
-            // Re-trigger auto fill in case type changed
             const name = document.getElementById('tName').value;
             if(name) autoFillDebt(name);
         }
@@ -865,15 +896,25 @@
             renderNetworkLog(type);
         };
 
-        // Clients Logic
+        // Clients Logic (Updated with Repay Button)
         window.renderClientsList = function() {
             const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
             const s = document.getElementById('clientSearch').value;
             const map={};
             transactions.forEach(t=>{ if(!map[t.name])map[t.name]=0; map[t.name]+=(t.type==='debt'?t.amount:-t.amount); });
             Object.keys(map).filter(n=>n.includes(s)).forEach(n=>{
-                const d=document.createElement('div'); d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; d.style.display='flex'; d.style.justifyContent='space-between';
-                d.innerHTML=`<b>${n}</b><span class="${map[n]>0?'text-red':'text-green'}">${Math.abs(map[n])}</span>`;
+                const d=document.createElement('div'); d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center';
+                
+                // Repay Button
+                const btnRepay = `<button class="btn-repay" onclick="event.stopPropagation(); goToRepay('${n}')">تسديد</button>`;
+                
+                d.innerHTML=`
+                    <div style="display:flex; align-items:center;">
+                        ${btnRepay}
+                        <b>${n}</b>
+                    </div>
+                    <span class="${map[n]>0?'text-red':'text-green'}">${Math.abs(map[n])}</span>
+                `;
                 d.onclick=()=>{ 
                     document.getElementById('clientsListView').style.display='none';
                     document.getElementById('clientProfileView').style.display='block';
@@ -912,7 +953,7 @@
                     d.onclick=()=>{ 
                         document.getElementById('tName').value=n; 
                         box.style.display='none';
-                        autoFillDebt(n); // Trigger AutoFill logic here
+                        autoFillDebt(n);
                     };
                     box.appendChild(d);
                 });
