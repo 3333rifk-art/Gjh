@@ -1,20 +1,24 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الديون والمخزون - محمي</title>
+    <title>نظام الديون والمخزون - النسخة الموسعة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --bg-color: #f9f4ef;
+            /* تعديل الألوان لتناسب الخلفية الجديدة */
+            --bg-gradient-start: #efebe9; /* بني فاتح جداً */
+            --bg-gradient-end: #b2ebf2;   /* سمائي فاتح */
+            
             --primary-color: #d4af37;
             --input-bg-debt: #fce8e8;
             --input-bg-credit: #e8fce8;
             --input-bg-stock: #fff3e0;
-            --border-color: #e0e0e0;
+            --border-color: #ccc; /* تغميق الحدود قليلاً للوضوح */
             --text-color: #333;
             --danger-color: #c62828;
             --success-color: #2e7d32;
@@ -31,15 +35,17 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            /* الخلفية بني على سمائي (تدرج) */
+            background: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
             color: var(--text-color);
             padding-bottom: 100px;
         }
 
-        /* --- Lock Screen (New) --- */
+        /* --- Lock Screen --- */
         #siteLockOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff; z-index: 100000; /* أعلى طبقة */
+            background: #fff; z-index: 100000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         #siteLockBox {
@@ -51,7 +57,7 @@
         /* --- Header --- */
         .header {
             padding: 15px;
-            background-color: #fff8f0;
+            background-color: rgba(255, 248, 240, 0.9); /* شفاف قليلاً */
             border-bottom: 1px solid #ddd;
             position: sticky; top: 0; z-index: 50;
             display: flex; justify-content: space-between; align-items: center;
@@ -59,18 +65,28 @@
         }
         .header h3 { font-size: 1.2rem; color: var(--primary-color); margin: 0; }
 
-        /* --- Layout --- */
-        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        /* --- Layout (توسيع الصفحة) --- */
+        .container { 
+            padding: 15px; 
+            max-width: 98%; /* تم التوسيع ليشغل كامل العرض تقريباً */
+            margin: 0 auto; 
+        }
         .card {
-            background: #fff; border-radius: 12px; padding: 15px;
+            background: #fff; border-radius: 12px; padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden;
         }
 
-        /* --- Forms & Inputs --- */
-        label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #555; font-weight: 500; }
+        /* --- Forms & Inputs (توسيع الحقول) --- */
+        label { display: block; font-size: 0.95rem; margin-bottom: 8px; color: #444; font-weight: 600; }
+        
         input, textarea, select {
-            width: 100%; padding: 12px; border: 1px solid var(--border-color);
-            border-radius: 8px; font-size: 0.95rem; margin-bottom: 15px; outline: none; transition: 0.3s;
+            width: 100%; 
+            padding: 16px; /* زيادة الحجم */
+            border: 1px solid var(--border-color);
+            border-radius: 10px; 
+            font-size: 1.1rem; /* تكبير الخط */
+            margin-bottom: 20px; 
+            outline: none; transition: 0.3s;
         }
         
         /* Colors */
@@ -83,43 +99,44 @@
 
         /* --- Buttons --- */
         .btn {
-            padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;
+            padding: 14px; /* تكبير الأزرار */
+            border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;
         }
         .btn-save { background: var(--primary-color); color: #fff; width: 100%; margin-top: 5px; }
         .btn-outline { background: #fff; border: 1px solid #ccc; color: #333; }
         .btn-group { display: flex; gap: 10px; margin-top: 10px; }
         
         .btn-action-group { display: flex; gap: 5px; justify-content: center; }
-        .btn-edit, .btn-delete { padding: 5px 10px; border-radius: 5px; border: none; color: #fff; cursor: pointer; }
+        .btn-edit, .btn-delete { padding: 8px 12px; border-radius: 6px; border: none; color: #fff; cursor: pointer; }
         .btn-edit { background: var(--blue-color); }
         .btn-delete { background: var(--danger-color); }
 
         /* --- Filter Tabs --- */
-        .filter-tabs { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 4px; border-radius: 8px; }
-        .filter-tab { flex: 1; text-align: center; padding: 8px; font-size: 0.85rem; cursor: pointer; border-radius: 6px; }
+        .filter-tabs { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 5px; border-radius: 10px; }
+        .filter-tab { flex: 1; text-align: center; padding: 10px; font-size: 0.9rem; cursor: pointer; border-radius: 8px; }
         .filter-tab.active { background: #fff; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
         /* --- Net Type Toggle --- */
         .net-type-toggle { display: flex; gap: 5px; margin-bottom: 15px; }
-        .net-opt { flex: 1; text-align: center; padding: 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .net-opt { flex: 1; text-align: center; padding: 12px; border: 1px solid #eee; border-radius: 10px; cursor: pointer; font-size: 0.95rem; }
         .net-opt.active { font-weight: bold; border-color: var(--primary-color); background: #fff8f0; }
 
         /* --- Tables --- */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 100%; }
-        th { background: #f4f4f4; padding: 10px; font-size: 0.85rem; white-space: nowrap; }
-        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
+        th { background: #f4f4f4; padding: 12px; font-size: 0.9rem; white-space: nowrap; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.95rem; }
         .inventory-table th { background-color: #e3f2fd; color: #1565c0; }
 
         /* --- Nav --- */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; background: #fff; height: 70px;
+            position: fixed; bottom: 0; left: 0; right: 0; background: #fff; height: 75px;
             display: flex; justify-content: space-around; align-items: center;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; border-top: 1px solid #eee;
         }
-        .nav-item { text-align: center; color: #999; font-size: 0.7rem; flex: 1; cursor: pointer; }
-        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; display: block; }
+        .nav-item { text-align: center; color: #999; font-size: 0.75rem; flex: 1; cursor: pointer; }
+        .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--primary-color); font-weight: bold; }
 
         .tab-section { display: none; }
@@ -128,10 +145,10 @@
         /* --- Suggestions --- */
         .input-wrapper { position: relative; }
         .suggestions-list {
-            position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd;
-            z-index: 100; max-height: 150px; overflow-y: auto; display: none;
+            position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #aaa;
+            z-index: 100; max-height: 200px; overflow-y: auto; display: none; border-radius: 0 0 10px 10px;
         }
-        .suggestions-list div { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .suggestions-list div { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 1rem; }
 
         /* Client Profile */
         #clientProfileView { display: none; }
@@ -140,9 +157,10 @@
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.8); z-index: 9999;
-            display: none; /* Hidden by default until needed */
+            display: none;
             justify-content: center; align-items: center;
             font-weight: bold; color: var(--primary-color);
+            font-size: 1.2rem;
         }
     </style>
 </head>
@@ -161,7 +179,7 @@
 
     <div class="header">
         <h3 id="pageTitle">إضافة عملية</h3>
-        <div style="font-size:0.8rem; color:#777;">النظام الشامل (Online)</div>
+        <div style="font-size:0.8rem; color:#555;">النظام الشامل (Online)</div>
     </div>
 
     <div class="container">
@@ -188,7 +206,7 @@
                     <label>التفاصيل</label>
                     <textarea id="tDetails" rows="2" placeholder="تفاصيل..."></textarea>
 
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 15px;">
                         <div style="flex:1"><label>المبلغ الكلي</label><input type="number" id="tTotal" placeholder="0"></div>
                         <div style="flex:1"><label>الواصل</label><input type="number" id="tPaid" value="0"></div>
                     </div>
@@ -242,23 +260,23 @@
                     <i class="fas fa-chart-pie"></i> جرد المخزون حسب الفترة
                 </h4>
                 
-                <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:10px;">
-                    <div style="margin-bottom:10px;">
-                        <label style="font-size:0.8rem;">تحديد نوع الخط:</label>
+                <div style="background:#fff; border:1px solid #ddd; padding:15px; border-radius:10px; margin-bottom:15px;">
+                    <div style="margin-bottom:15px;">
+                        <label style="font-size:0.9rem;">تحديد نوع الخط:</label>
                         <select id="netFilterType" style="margin:0;">
                             <option value="all">كل الأنواع</option>
                         </select>
                     </div>
 
-                    <label style="font-size:0.8rem; margin-bottom:5px; font-weight:bold;">تحديد الفترة الزمنية (الجرد):</label>
+                    <label style="font-size:0.9rem; margin-bottom:5px; font-weight:bold;">تحديد الفترة الزمنية (الجرد):</label>
                     <div style="display:flex; gap:10px; align-items:center;">
                         <div style="flex:1;">
-                            <label style="font-size:0.7rem;">من تاريخ:</label>
-                            <input type="date" id="netDateFrom" style="margin:0; padding:8px;">
+                            <label style="font-size:0.8rem;">من تاريخ:</label>
+                            <input type="date" id="netDateFrom" style="margin:0; padding:10px;">
                         </div>
                         <div style="flex:1;">
-                            <label style="font-size:0.7rem;">إلى تاريخ:</label>
-                            <input type="date" id="netDateTo" style="margin:0; padding:8px;">
+                            <label style="font-size:0.8rem;">إلى تاريخ:</label>
+                            <input type="date" id="netDateTo" style="margin:0; padding:10px;">
                         </div>
                     </div>
                 </div>
@@ -270,7 +288,7 @@
                     </table>
                 </div>
                 
-                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.85rem;">
+                <div style="margin-top:15px; padding-top:15px; border-top:1px solid #eee; font-size:0.95rem;">
                     <div style="display:flex; justify-content:space-between;"><span>إجمالي مبيعاتنا:</span><span id="stSales" class="text-green bold">0</span></div>
                     <div style="display:flex; justify-content:space-between;"><span>علينا للشركة (سحب+ديون):</span><span id="stAlihna" class="text-red bold">0</span></div>
                     <div style="display:flex; justify-content:space-between;"><span>لنا (تسديدات واصلة):</span><span id="stLana" class="text-green bold">0</span></div>
@@ -405,6 +423,34 @@
                 loadAllData();
             } else {
                 alert("كلمة المرور خاطئة!");
+            }
+        };
+
+        // --- AUTO FILL DEBT LOGIC ---
+        // Helper to get balance
+        function getClientBalance(name) {
+            let balance = 0;
+            transactions.forEach(t => {
+                if(t.name === name) {
+                    // debt = + , credit = -
+                    if(t.type === 'debt') balance += t.amount;
+                    else balance -= t.amount;
+                }
+            });
+            return balance;
+        }
+
+        // The auto fill function
+        window.autoFillDebt = function(name) {
+            const type = document.getElementById('tType').value;
+            // If the transaction type is "Payment" (credit/تسديد)
+            if(type === 'credit') {
+                const bal = getClientBalance(name);
+                // If they owe money (balance > 0), fill it in Total
+                if (bal > 0) {
+                     document.getElementById('tTotal').value = bal;
+                     calcRem(); // Recalculate remaining
+                }
             }
         };
 
@@ -746,6 +792,10 @@
             const type = document.getElementById('tType').value;
             const bg = type === 'debt' ? '#fce8e8' : '#e8fce8';
             ['tType','tName','tDetails'].forEach(id => document.getElementById(id).style.background = bg);
+            
+            // Re-trigger auto fill in case type changed
+            const name = document.getElementById('tName').value;
+            if(name) autoFillDebt(name);
         }
 
         window.calcRem = function() {
@@ -851,7 +901,7 @@
         document.getElementById('tTotal').addEventListener('input', calcRem);
         document.getElementById('tPaid').addEventListener('input', calcRem);
 
-        // Suggestions
+        // Suggestions Event
         document.getElementById('tName').addEventListener('input', function() {
             const val = this.value;
             const box = document.getElementById('suggestionsBox'); box.innerHTML='';
@@ -861,7 +911,11 @@
                 box.style.display='block';
                 names.forEach(n => {
                     const d=document.createElement('div'); d.innerText=n;
-                    d.onclick=()=>{ document.getElementById('tName').value=n; box.style.display='none'; };
+                    d.onclick=()=>{ 
+                        document.getElementById('tName').value=n; 
+                        box.style.display='none';
+                        autoFillDebt(n); // Trigger AutoFill logic here
+                    };
                     box.appendChild(d);
                 });
             } else box.style.display='none';
@@ -937,7 +991,7 @@
         document.getElementById('netFilterType').addEventListener('change', renderNetworkStats);
         document.getElementById('nCompDebtType').addEventListener('change', updateCompColors);
 
-        // Dont load data yet, wait for unlock
+        // Wait for unlock
     </script>
 </body>
 </html>
