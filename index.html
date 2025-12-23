@@ -115,7 +115,7 @@
             background-color: var(--success-color); color: white;
             padding: 8px 15px; border-radius: 20px; border: none;
             font-size: 0.85rem; cursor: pointer; 
-            margin-left: 30px; /* مسافة أكبر */
+            margin-left: 30px; 
         }
 
         /* --- Filter Tabs --- */
@@ -237,7 +237,10 @@
                                 <th>إجراء</th>
                                 <th>الاسم</th>
                                 <th>التفاصيل</th>
-                                <th>المبلغ الكلي</th> <th>الواصل</th> <th>الباقي</th> <th>التاريخ</th>
+                                <th>المبلغ الكلي</th>
+                                <th>الواصل</th>
+                                <th>الباقي</th>
+                                <th>التاريخ</th>
                             </tr>
                         </thead>
                         <tbody id="logBody"></tbody>
@@ -452,8 +455,8 @@
             let balance = 0;
             transactions.forEach(t => {
                 if(t.name === name) {
-                    if(t.type === 'debt') balance += t.amount;
-                    else balance -= t.amount;
+                    if(t.type === 'debt') balance += (parseFloat(t.amount) || 0);
+                    else balance -= (parseFloat(t.paidVal) || 0);
                 }
             });
             return balance;
@@ -595,7 +598,6 @@
                 if(!typeVal) return alert('المخزون فارغ');
             }
 
-            // Calculation for Sale Price * Qty
             let finalSalePrice = parseFloat(document.getElementById('nSalePrice').value)||0;
             let qty = parseFloat(document.getElementById('nSaleQty').value)||1;
             
@@ -703,12 +705,14 @@
             const tb = document.getElementById('logBody'); tb.innerHTML='';
             [...transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
                 const tr=document.createElement('tr');
-                // Updated Columns: Added Total, Paid, Remaining
                 tr.innerHTML=`
                     <td><div class="btn-action-group"><button class="btn-edit" onclick="editTx('${t.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delTx('${t.id}')"><i class="fas fa-trash"></i></button></div></td>
                     <td>${t.name}</td>
                     <td>${t.details}</td>
-                    <td style="color:#555;">${t.totalVal || 0}</td> <td class="text-green">${t.paidVal || 0}</td> <td class="${t.type==='debt'?'text-red':'text-green'} bold">${t.amount}</td> <td style="font-size:0.8rem">${t.date}</td>
+                    <td style="color:#555;">${t.totalVal || 0}</td>
+                    <td class="text-green">${t.paidVal || 0}</td>
+                    <td class="${t.type==='debt'?'text-red':'text-green'} bold">${t.amount}</td>
+                    <td style="font-size:0.8rem">${t.date}</td>
                 `;
                 tb.appendChild(tr);
             });
@@ -903,16 +907,23 @@
             renderNetworkLog(type);
         };
 
-        // Clients Logic
+        // Clients Logic: Updated Balance Calculation
         window.renderClientsList = function() {
             const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
             const s = document.getElementById('clientSearch').value;
             const map={};
-            transactions.forEach(t=>{ if(!map[t.name])map[t.name]=0; map[t.name]+=(t.type==='debt'?t.amount:-t.amount); });
+            transactions.forEach(t=>{ 
+                if(!map[t.name]) map[t.name]=0; 
+                // Fix Logic: Debt adds amount, Credit subtracts paid
+                if(t.type==='debt') {
+                    map[t.name] += (parseFloat(t.amount) || 0);
+                } else {
+                    map[t.name] -= (parseFloat(t.paidVal) || 0);
+                }
+            });
             Object.keys(map).filter(n=>n.includes(s)).forEach(n=>{
                 const d=document.createElement('div'); d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center';
                 
-                // Repay Button
                 const btnRepay = `<button class="btn-repay" onclick="event.stopPropagation(); goToRepay('${n}')">تسديد</button>`;
                 
                 d.innerHTML=`
@@ -1005,39 +1016,4 @@
                  if(pass !== "112") return alert("خطأ");
                  
                  const n=document.getElementById('pName').innerText;
-                 const toDelete = transactions.filter(t=>t.name===n);
-                 
-                 loadingOverlay.style.display = 'flex';
-                 try {
-                     for(let t of toDelete) {
-                         await deleteDoc(doc(db, "debt_transactions", t.id));
-                     }
-                     await loadAllData();
-                     document.getElementById('clientProfileView').style.display='none'; 
-                     document.getElementById('clientsListView').style.display='block';
-                     renderClientsList();
-                 } catch(e) {
-                     loadingOverlay.style.display = 'none';
-                     alert("خطأ: " + e.message);
-                 }
-             }
-        };
-
-        // Dates for Network
-        const dateObj = new Date();
-        const firstDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString().split('T')[0];
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('netDateFrom').value = firstDay;
-        document.getElementById('netDateTo').value = today;
-        document.getElementById('tDate').value = today;
-        document.getElementById('nDate').value = today;
-
-        document.getElementById('netDateFrom').addEventListener('change', renderNetworkStats);
-        document.getElementById('netDateTo').addEventListener('change', renderNetworkStats);
-        document.getElementById('netFilterType').addEventListener('change', renderNetworkStats);
-        document.getElementById('nCompDebtType').addEventListener('change', updateCompColors);
-
-        // Wait for unlock
-    </script>
-</body>
-</html>
+                 const toDelete = transactions.filter(t
