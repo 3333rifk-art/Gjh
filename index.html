@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الديون والمخزون - النسخة المعدلة</title>
+    <title>نظام الديون والمخزون - النسخة المصححة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -110,11 +110,12 @@
         .btn-edit { background: var(--blue-color); }
         .btn-delete { background: var(--danger-color); }
         
-        /* زر التسديد الجديد في قائمة الزبائن */
+        /* زر التسديد */
         .btn-repay {
             background-color: var(--success-color); color: white;
             padding: 8px 15px; border-radius: 20px; border: none;
-            font-size: 0.85rem; cursor: pointer; margin-right: 10px;
+            font-size: 0.85rem; cursor: pointer; 
+            margin-left: 30px; /* مسافة أكبر */
         }
 
         /* --- Filter Tabs --- */
@@ -231,7 +232,14 @@
             <div class="card">
                 <div class="table-container">
                     <table id="mainLogTable">
-                        <thead><tr><th>إجراء</th><th>الاسم</th><th>التفاصيل</th><th>الباقي</th><th>التاريخ</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>إجراء</th>
+                                <th>الاسم</th>
+                                <th>التفاصيل</th>
+                                <th>المبلغ الكلي</th> <th>الواصل</th> <th>الباقي</th> <th>التاريخ</th>
+                            </tr>
+                        </thead>
                         <tbody id="logBody"></tbody>
                     </table>
                 </div>
@@ -381,7 +389,9 @@
                                 <th>تعديل</th>
                                 <th>النوع</th>
                                 <th>التفاصيل</th>
-                                <th>العدد</th> <th>الواصل/السعر</th> <th>التاريخ</th>
+                                <th>العدد</th> 
+                                <th>الواصل/السعر</th> 
+                                <th>التاريخ</th>
                             </tr>
                         </thead>
                         <tbody id="networkBody"></tbody>
@@ -460,18 +470,15 @@
             }
         };
 
-        // NEW FUNCTION: Go To Repay Page
         window.goToRepay = function(name) {
             switchTab('add', 'إضافة عملية');
             document.getElementById('tName').value = name;
-            document.getElementById('tType').value = 'credit'; // Set to Payment
+            document.getElementById('tType').value = 'credit'; 
             updateDebtColors();
             
-            // Auto fill total with current debt
             const bal = getClientBalance(name);
             if(bal > 0) {
                 document.getElementById('tTotal').value = bal;
-                // Leave paid empty for user to enter
                 document.getElementById('tPaid').value = '';
                 document.getElementById('tRemaining').value = bal; 
             } else {
@@ -593,7 +600,7 @@
             let qty = parseFloat(document.getElementById('nSaleQty').value)||1;
             
             if(action === 'sale') {
-                finalSalePrice = finalSalePrice * qty; // Multiply here
+                finalSalePrice = finalSalePrice * qty; 
             }
 
             const dataObj = {
@@ -604,7 +611,7 @@
                 stockCost: parseFloat(document.getElementById('nStockCost').value)||0,
                 name: document.getElementById('nName').value,
                 phone: document.getElementById('nPhone').value,
-                salePrice: finalSalePrice, // Save the multiplied value
+                salePrice: finalSalePrice, 
                 unitCost: parseFloat(document.getElementById('nUnitCost').value)||0,
                 saleQty: qty,
                 payAmount: parseFloat(document.getElementById('nPayAmount').value)||0,
@@ -675,10 +682,7 @@
                     setTimeout(() => { document.getElementById('nSaleType').value=n.simType; }, 100);
                     document.getElementById('nName').value=n.name;
                     document.getElementById('nPhone').value=n.phone;
-                    // Note: This will put the TOTAL price in the input. 
-                    // User might need to manually divide if they want unit price back, 
-                    // but for simplicity we load what was saved.
-                    document.getElementById('nSalePrice').value=n.salePrice; 
+                    document.getElementById('nSalePrice').value=n.salePrice;
                     document.getElementById('nUnitCost').value=n.unitCost;
                     document.getElementById('nSaleQty').value = n.saleQty || 1;
                 } else {
@@ -699,9 +703,12 @@
             const tb = document.getElementById('logBody'); tb.innerHTML='';
             [...transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
                 const tr=document.createElement('tr');
+                // Updated Columns: Added Total, Paid, Remaining
                 tr.innerHTML=`
                     <td><div class="btn-action-group"><button class="btn-edit" onclick="editTx('${t.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delTx('${t.id}')"><i class="fas fa-trash"></i></button></div></td>
-                    <td>${t.name}</td><td>${t.details}</td><td class="${t.type==='debt'?'text-red':'text-green'} bold">${t.amount}</td><td style="font-size:0.8rem">${t.date}</td>
+                    <td>${t.name}</td>
+                    <td>${t.details}</td>
+                    <td style="color:#555;">${t.totalVal || 0}</td> <td class="text-green">${t.paidVal || 0}</td> <td class="${t.type==='debt'?'text-red':'text-green'} bold">${t.amount}</td> <td style="font-size:0.8rem">${t.date}</td>
                 `;
                 tb.appendChild(tr);
             });
@@ -717,7 +724,7 @@
 
             data.forEach(n => {
                 const tr = document.createElement('tr');
-                let typeTxt='', info='', qtyCol='', moneyCol='';
+                let typeTxt='', info='', num='', qtyCol='', moneyCol='';
                 
                 if(n.action==='sale') {
                     typeTxt=`<span class="text-blue bold">بيع: ${n.simType}</span>`;
@@ -896,7 +903,7 @@
             renderNetworkLog(type);
         };
 
-        // Clients Logic (Updated with Repay Button)
+        // Clients Logic
         window.renderClientsList = function() {
             const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
             const s = document.getElementById('clientSearch').value;
