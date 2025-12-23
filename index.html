@@ -1016,4 +1016,39 @@
                  if(pass !== "112") return alert("خطأ");
                  
                  const n=document.getElementById('pName').innerText;
-                 const toDelete = transactions.filter(t
+                 const toDelete = transactions.filter(t=>t.name===n);
+                 
+                 loadingOverlay.style.display = 'flex';
+                 try {
+                     for(let t of toDelete) {
+                         await deleteDoc(doc(db, "debt_transactions", t.id));
+                     }
+                     await loadAllData();
+                     document.getElementById('clientProfileView').style.display='none'; 
+                     document.getElementById('clientsListView').style.display='block';
+                     renderClientsList();
+                 } catch(e) {
+                     loadingOverlay.style.display = 'none';
+                     alert("خطأ: " + e.message);
+                 }
+             }
+        };
+
+        // Dates for Network
+        const dateObj = new Date();
+        const firstDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('netDateFrom').value = firstDay;
+        document.getElementById('netDateTo').value = today;
+        document.getElementById('tDate').value = today;
+        document.getElementById('nDate').value = today;
+
+        document.getElementById('netDateFrom').addEventListener('change', renderNetworkStats);
+        document.getElementById('netDateTo').addEventListener('change', renderNetworkStats);
+        document.getElementById('netFilterType').addEventListener('change', renderNetworkStats);
+        document.getElementById('nCompDebtType').addEventListener('change', updateCompColors);
+
+        // Wait for unlock
+    </script>
+</body>
+</html>
