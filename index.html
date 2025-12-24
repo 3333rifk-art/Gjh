@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الديون والمخزون - النسخة المصححة</title>
+    <title>نظام الديون والمخزون - النسخة المعدلة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -90,10 +90,14 @@
         /* Colors */
         .type-debt { background-color: var(--input-bg-debt) !important; color: var(--danger-color); }
         .type-credit { background-color: var(--input-bg-credit) !important; color: var(--success-color); }
-        .text-red { color: var(--danger-color); }
-        .text-green { color: var(--success-color); }
+        
+        /* طلب التعديل: الدائن أحمر والمدين أخضر */
+        .text-red { color: var(--danger-color) !important; } /* للدائن */
+        .text-green { color: var(--success-color) !important; } /* للمدين */
+        
         .text-blue { color: var(--blue-color); }
         .text-orange { color: var(--orange-color); }
+        .bold { font-weight: bold; }
 
         /* --- Buttons --- */
         .btn {
@@ -115,7 +119,7 @@
             background-color: var(--success-color); color: white;
             padding: 8px 15px; border-radius: 20px; border: none;
             font-size: 0.85rem; cursor: pointer; 
-            margin-left: 30px; 
+            margin-left: 10px; 
         }
 
         /* --- Filter Tabs --- */
@@ -134,6 +138,17 @@
         th { background: #f4f4f4; padding: 12px; font-size: 0.9rem; white-space: nowrap; }
         td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.95rem; }
         .inventory-table th { background-color: #e3f2fd; color: #1565c0; }
+
+        /* ملخص الديون */
+        .debt-summary-box {
+            display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;
+        }
+        .debt-stat {
+            flex: 1; min-width: 100px;
+            background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #eee;
+        }
+        .debt-stat span { display: block; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
+        .debt-stat strong { font-size: 1.1rem; }
 
         /* --- Nav --- */
         .bottom-nav {
@@ -205,8 +220,8 @@
 
                     <label>نوع العملية</label>
                     <select id="tType" class="type-debt">
-                        <option value="debt">عليه (دين - مطلوب منه)</option>
-                        <option value="credit">له (تسديد - له رصيد)</option>
+                        <option value="debt">عليه (مدين - مطلوب منه)</option>
+                        <option value="credit">له (دائن - تسديد له)</option>
                     </select>
 
                     <label>التفاصيل</label>
@@ -230,6 +245,21 @@
 
         <div id="tab-log" class="tab-section">
             <div class="card">
+                <div class="debt-summary-box">
+                    <div class="debt-stat" style="border-bottom: 3px solid #c62828;">
+                        <span>مجموع دائن (أحمر)</span>
+                        <strong id="sumDaen" class="text-red">0</strong>
+                    </div>
+                    <div class="debt-stat" style="border-bottom: 3px solid #2e7d32;">
+                        <span>مجموع مدين (أخضر)</span>
+                        <strong id="sumMadeen" class="text-green">0</strong>
+                    </div>
+                    <div class="debt-stat" style="border-bottom: 3px solid #1565c0;">
+                        <span>مجموع الواصل</span>
+                        <strong id="sumWasel" class="text-blue">0</strong>
+                    </div>
+                </div>
+
                 <div class="table-container">
                     <table id="mainLogTable">
                         <thead>
@@ -237,7 +267,7 @@
                                 <th>إجراء</th>
                                 <th>الاسم</th>
                                 <th>التفاصيل</th>
-                                <th>المبلغ الكلي</th>
+                                <th>نوع الدين</th> <th>المبلغ الكلي</th>
                                 <th>الواصل</th>
                                 <th>الباقي</th>
                                 <th>التاريخ</th>
@@ -701,21 +731,52 @@
 
         // --- 4. RENDER & HELPERS ---
         
+        // تعديل 1: عرض الديون مع التلوين والعمود الجديد
         function renderLog() {
             const tb = document.getElementById('logBody'); tb.innerHTML='';
+            
+            let totalDaen = 0;   // دائن (أحمر)
+            let totalMadeen = 0; // مدين (أخضر)
+            let totalWasel = 0;  // مجموع الواصل
+
             [...transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+                // حساب المجاميع
+                totalWasel += (parseFloat(t.paidVal) || 0);
+                if(t.type === 'credit') {
+                    totalDaen += (parseFloat(t.amount) || 0);
+                } else {
+                    totalMadeen += (parseFloat(t.amount) || 0);
+                }
+
                 const tr=document.createElement('tr');
+                
+                // تحديد النص واللون للعمود الجديد
+                let typeText = "";
+                let typeClass = "";
+                if(t.type === 'credit') {
+                    typeText = "دائن";
+                    typeClass = "text-red bold"; // حسب طلبك: الدائن أحمر
+                } else {
+                    typeText = "مدين";
+                    typeClass = "text-green bold"; // حسب طلبك: المدين أخضر
+                }
+
                 tr.innerHTML=`
                     <td><div class="btn-action-group"><button class="btn-edit" onclick="editTx('${t.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delTx('${t.id}')"><i class="fas fa-trash"></i></button></div></td>
                     <td>${t.name}</td>
                     <td>${t.details}</td>
-                    <td style="color:#555;">${t.totalVal || 0}</td>
-                    <td class="text-green">${t.paidVal || 0}</td>
-                    <td class="${t.type==='debt'?'text-red':'text-green'} bold">${t.amount}</td>
+                    <td class="${typeClass}">${typeText}</td> <td style="color:#555;">${t.totalVal || 0}</td>
+                    <td class="text-blue">${t.paidVal || 0}</td>
+                    <td class="bold">${t.amount}</td>
                     <td style="font-size:0.8rem">${t.date}</td>
                 `;
                 tb.appendChild(tr);
             });
+
+            // تحديث الملخص العلوي
+            document.getElementById('sumDaen').innerText = totalDaen.toLocaleString();
+            document.getElementById('sumMadeen').innerText = totalMadeen.toLocaleString();
+            document.getElementById('sumWasel').innerText = totalWasel.toLocaleString();
         }
 
         function renderNetworkLog(filter) {
@@ -907,38 +968,57 @@
             renderNetworkLog(type);
         };
 
-        // Clients Logic: Updated Balance Calculation
+        // تعديل 2: تحديث قائمة الزبائن لعرض التفاصيل الكاملة
         window.renderClientsList = function() {
             const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
             const s = document.getElementById('clientSearch').value;
-            const map={};
+            const clientStats = {};
+
+            // تجميع البيانات لكل زبون
             transactions.forEach(t=>{ 
-                if(!map[t.name]) map[t.name]=0; 
-                // Fix Logic: Debt adds amount, Credit subtracts paid
-                if(t.type==='debt') {
-                    map[t.name] += (parseFloat(t.amount) || 0);
+                if(!clientStats[t.name]) clientStats[t.name] = { totalDebt: 0, totalCredit: 0, balance: 0 };
+                
+                if(t.type === 'debt') {
+                    // مدين (أخضر حسب طلبك)
+                    clientStats[t.name].totalDebt += (parseFloat(t.amount) || 0);
+                    clientStats[t.name].balance += (parseFloat(t.amount) || 0);
                 } else {
-                    map[t.name] -= (parseFloat(t.paidVal) || 0);
+                    // دائن (أحمر حسب طلبك)
+                    clientStats[t.name].totalCredit += (parseFloat(t.amount) || 0);
+                    clientStats[t.name].balance -= (parseFloat(t.paidVal) || 0); // منطق الرصيد يبقى كما هو للحساب الصحيح
                 }
             });
-            Object.keys(map).filter(n=>n.includes(s)).forEach(n=>{
-                const d=document.createElement('div'); d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center';
+
+            Object.keys(clientStats).filter(n=>n.includes(s)).forEach(n=>{
+                const stats = clientStats[n];
+                const d=document.createElement('div'); 
+                d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; 
+                d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center';
                 
                 const btnRepay = `<button class="btn-repay" onclick="event.stopPropagation(); goToRepay('${n}')">تسديد</button>`;
                 
+                // عرض تفصيلي: مدين / دائن / الصافي
                 d.innerHTML=`
-                    <div style="display:flex; align-items:center;">
-                        ${btnRepay}
-                        <b>${n}</b>
+                    <div style="display:flex; flex-direction:column; width:100%;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <b style="font-size:1.1rem;">${n}</b>
+                            ${btnRepay}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#666;">
+                            <span>مدين (أخضر): <span class="text-green bold">${stats.totalDebt}</span></span>
+                            <span>دائن (أحمر): <span class="text-red bold">${stats.totalCredit}</span></span>
+                        </div>
+                        <div style="text-align:left; font-size:0.9rem; margin-top:5px; border-top:1px dashed #eee; padding-top:3px;">
+                            الصافي: <span class="${stats.balance>0?'text-green':'text-red'} bold">${Math.abs(stats.balance)}</span>
+                        </div>
                     </div>
-                    <span class="${map[n]>0?'text-red':'text-green'}">${Math.abs(map[n])}</span>
                 `;
                 d.onclick=()=>{ 
                     document.getElementById('clientsListView').style.display='none';
                     document.getElementById('clientProfileView').style.display='block';
                     document.getElementById('pName').innerText=n;
-                    document.getElementById('pBalance').innerText=Math.abs(map[n]);
-                    document.getElementById('pStatus').innerText=map[n]>0?'عليه (دين)':'له (رصيد)';
+                    document.getElementById('pBalance').innerText=Math.abs(stats.balance);
+                    document.getElementById('pStatus').innerText=stats.balance>0?'عليه (دين)':'له (رصيد)';
                     const ptb=document.getElementById('pHistoryBody'); ptb.innerHTML='';
                     transactions.filter(t=>t.name===n).forEach(t=>{
                         ptb.innerHTML+=`<tr><td><button class="btn-delete" onclick="delTx('${t.id}')">x</button></td><td>${t.details}</td><td>${t.amount}</td><td>${t.date}</td></tr>`;
