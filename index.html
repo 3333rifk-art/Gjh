@@ -91,9 +91,8 @@
         .type-debt { background-color: var(--input-bg-debt) !important; color: var(--danger-color); }
         .type-credit { background-color: var(--input-bg-credit) !important; color: var(--success-color); }
         
-        /* طلب التعديل: الدائن أحمر والمدين أخضر */
-        .text-red { color: var(--danger-color) !important; } /* للدائن */
-        .text-green { color: var(--success-color) !important; } /* للمدين */
+        .text-red { color: var(--danger-color) !important; } 
+        .text-green { color: var(--success-color) !important; } 
         
         .text-blue { color: var(--blue-color); }
         .text-orange { color: var(--orange-color); }
@@ -267,7 +266,8 @@
                                 <th>إجراء</th>
                                 <th>الاسم</th>
                                 <th>التفاصيل</th>
-                                <th>نوع الدين</th> <th>المبلغ الكلي</th>
+                                <th>نوع الدين</th> 
+                                <th>المبلغ الكلي</th>
                                 <th>الواصل</th>
                                 <th>الباقي</th>
                                 <th>التاريخ</th>
@@ -492,14 +492,30 @@
             return balance;
         }
 
+        // التعديل الرئيسي هنا: منطق تعبئة الحقول عند اختيار "تسديد"
         window.autoFillDebt = function(name) {
             const type = document.getElementById('tType').value;
+            const bal = getClientBalance(name);
+            
+            // إذا كان النوع "له (تسديد)"
             if(type === 'credit') {
-                const bal = getClientBalance(name);
                 if (bal > 0) {
-                     document.getElementById('tTotal').value = bal;
+                     // وضع كامل الدين في الحقل الكلي
+                     document.getElementById('tTotal').value = bal; 
+                     // تصفير الواصل ليكتبه المستخدم
+                     document.getElementById('tPaid').value = 0; 
+                     // تحديث الباقي
                      calcRem(); 
+                } else {
+                     document.getElementById('tTotal').value = 0;
+                     document.getElementById('tPaid').value = 0;
+                     calcRem();
                 }
+            } else {
+                // إذا كان "عليه (دين جديد)"، نصفر الحقل الكلي ليدخل قيمة الشراء الجديدة
+                // إلا إذا كان هناك قيمة مكتوبة مسبقاً لا نريد مسحها عشوائياً، لكن الأفضل التصفير عند تغيير الاسم
+                // document.getElementById('tTotal').value = '';
+                calcRem();
             }
         };
 
@@ -509,14 +525,8 @@
             document.getElementById('tType').value = 'credit'; 
             updateDebtColors();
             
-            const bal = getClientBalance(name);
-            if(bal > 0) {
-                document.getElementById('tTotal').value = bal;
-                document.getElementById('tPaid').value = '';
-                document.getElementById('tRemaining').value = bal; 
-            } else {
-                document.getElementById('tTotal').value = 0;
-            }
+            // استدعاء دالة التعبئة لضمان نفس المنطق
+            autoFillDebt(name);
         };
 
         // --- 1. DATA LOADING FUNCTIONS ---
@@ -731,16 +741,14 @@
 
         // --- 4. RENDER & HELPERS ---
         
-        // تعديل 1: عرض الديون مع التلوين والعمود الجديد
         function renderLog() {
             const tb = document.getElementById('logBody'); tb.innerHTML='';
             
-            let totalDaen = 0;   // دائن (أحمر)
-            let totalMadeen = 0; // مدين (أخضر)
-            let totalWasel = 0;  // مجموع الواصل
+            let totalDaen = 0;   
+            let totalMadeen = 0; 
+            let totalWasel = 0;  
 
             [...transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
-                // حساب المجاميع
                 totalWasel += (parseFloat(t.paidVal) || 0);
                 if(t.type === 'credit') {
                     totalDaen += (parseFloat(t.amount) || 0);
@@ -749,23 +757,22 @@
                 }
 
                 const tr=document.createElement('tr');
-                
-                // تحديد النص واللون للعمود الجديد
                 let typeText = "";
                 let typeClass = "";
                 if(t.type === 'credit') {
                     typeText = "دائن";
-                    typeClass = "text-red bold"; // حسب طلبك: الدائن أحمر
+                    typeClass = "text-red bold"; 
                 } else {
                     typeText = "مدين";
-                    typeClass = "text-green bold"; // حسب طلبك: المدين أخضر
+                    typeClass = "text-green bold"; 
                 }
 
                 tr.innerHTML=`
                     <td><div class="btn-action-group"><button class="btn-edit" onclick="editTx('${t.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delTx('${t.id}')"><i class="fas fa-trash"></i></button></div></td>
                     <td>${t.name}</td>
                     <td>${t.details}</td>
-                    <td class="${typeClass}">${typeText}</td> <td style="color:#555;">${t.totalVal || 0}</td>
+                    <td class="${typeClass}">${typeText}</td> 
+                    <td style="color:#555;">${t.totalVal || 0}</td>
                     <td class="text-blue">${t.paidVal || 0}</td>
                     <td class="bold">${t.amount}</td>
                     <td style="font-size:0.8rem">${t.date}</td>
@@ -773,7 +780,6 @@
                 tb.appendChild(tr);
             });
 
-            // تحديث الملخص العلوي
             document.getElementById('sumDaen').innerText = totalDaen.toLocaleString();
             document.getElementById('sumMadeen').innerText = totalMadeen.toLocaleString();
             document.getElementById('sumWasel').innerText = totalWasel.toLocaleString();
@@ -968,24 +974,20 @@
             renderNetworkLog(type);
         };
 
-        // تعديل 2: تحديث قائمة الزبائن لعرض التفاصيل الكاملة
         window.renderClientsList = function() {
             const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
             const s = document.getElementById('clientSearch').value;
             const clientStats = {};
 
-            // تجميع البيانات لكل زبون
             transactions.forEach(t=>{ 
                 if(!clientStats[t.name]) clientStats[t.name] = { totalDebt: 0, totalCredit: 0, balance: 0 };
                 
                 if(t.type === 'debt') {
-                    // مدين (أخضر حسب طلبك)
                     clientStats[t.name].totalDebt += (parseFloat(t.amount) || 0);
                     clientStats[t.name].balance += (parseFloat(t.amount) || 0);
                 } else {
-                    // دائن (أحمر حسب طلبك)
                     clientStats[t.name].totalCredit += (parseFloat(t.amount) || 0);
-                    clientStats[t.name].balance -= (parseFloat(t.paidVal) || 0); // منطق الرصيد يبقى كما هو للحساب الصحيح
+                    clientStats[t.name].balance -= (parseFloat(t.paidVal) || 0); 
                 }
             });
 
@@ -997,7 +999,6 @@
                 
                 const btnRepay = `<button class="btn-repay" onclick="event.stopPropagation(); goToRepay('${n}')">تسديد</button>`;
                 
-                // عرض تفصيلي: مدين / دائن / الصافي
                 d.innerHTML=`
                     <div style="display:flex; flex-direction:column; width:100%;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
@@ -1127,8 +1128,6 @@
         document.getElementById('netDateTo').addEventListener('change', renderNetworkStats);
         document.getElementById('netFilterType').addEventListener('change', renderNetworkStats);
         document.getElementById('nCompDebtType').addEventListener('change', updateCompColors);
-
-        // Wait for unlock
     </script>
 </body>
 </html>
