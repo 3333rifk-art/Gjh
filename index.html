@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الديون والمخزون - النسخة المعدلة</title>
+    <title>نظام الديون والمخزون - النسخة المحدثة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -149,6 +149,12 @@
         .debt-stat span { display: block; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
         .debt-stat strong { font-size: 1.1rem; }
 
+        /* صافي الرصيد الجديد */
+        .net-balance-box {
+            text-align: center; padding: 15px; background: #fff8e1; border: 2px dashed var(--primary-color);
+            border-radius: 12px; margin-bottom: 20px; display: none; /* مخفي افتراضيا */
+        }
+
         /* --- Nav --- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0; background: #fff; height: 75px;
@@ -244,6 +250,18 @@
 
         <div id="tab-log" class="tab-section">
             <div class="card">
+                
+                <div class="input-wrapper" style="margin-bottom: 20px;">
+                    <label>بحث في السجل (بالاسم)</label>
+                    <input type="text" id="logSearchName" placeholder="اكتب الاسم لعرض سجله..." autocomplete="off">
+                    <div id="logSuggestionsBox" class="suggestions-list"></div>
+                </div>
+
+                <div id="finalBalanceBox" class="net-balance-box">
+                    <span style="font-size:0.9rem; color:#666;">صافي الرصيد المتبقي (النتيجة النهائية)</span>
+                    <h2 id="finalBalanceValue" style="margin-top:5px; direction:ltr;">0</h2>
+                </div>
+
                 <div class="debt-summary-box">
                     <div class="debt-stat" style="border-bottom: 3px solid #c62828;">
                         <span>مجموع دائن (أحمر)</span>
@@ -294,7 +312,7 @@
                     <button class="btn btn-delete" style="width:100%; margin-top:10px;" id="btnDeleteClient">حذف الزبون بالكامل</button>
                 </div>
                 <div class="card table-container">
-                    <table><thead><tr><th>إجراء</th><th>تفاصيل</th><th>مبلغ</th><th>تاريخ</th></tr></thead><tbody id="pHistoryBody"></tbody></table>
+                    <table><thead><tr><th>إجراء</th><th>تفاصيل</th><th>مبلغ الحركة</th><th>تاريخ</th></tr></thead><tbody id="pHistoryBody"></tbody></table>
                 </div>
             </div>
         </div>
@@ -480,31 +498,38 @@
             }
         };
 
-        // --- AUTO FILL DEBT LOGIC ---
+        // --- CORE CLIENT LOGIC UPDATES ---
+        
+        // 1. منطق حساب الرصيد بدقة: (مجموع الديون) - (مجموع التسديدات)
         function getClientBalance(name) {
             let balance = 0;
             transactions.forEach(t => {
                 if(t.name === name) {
-                    if(t.type === 'debt') balance += (parseFloat(t.amount) || 0);
-                    else balance -= (parseFloat(t.paidVal) || 0);
+                    if(t.type === 'debt') {
+                        // عملية دين: نضيف المبلغ المتبقي (amount) على الدين
+                        balance += (parseFloat(t.amount) || 0);
+                    } else {
+                        // عملية تسديد (credit): ننقص المبلغ الذي دفعه الزبون (paidVal) من الدين
+                        balance -= (parseFloat(t.paidVal) || 0);
+                    }
                 }
             });
             return balance;
         }
 
-        // التعديل الرئيسي هنا: منطق تعبئة الحقول عند اختيار "تسديد"
+        // 2. تعبئة الحقول تلقائياً عند اختيار تسديد
         window.autoFillDebt = function(name) {
             const type = document.getElementById('tType').value;
             const bal = getClientBalance(name);
             
-            // إذا كان النوع "له (تسديد)"
             if(type === 'credit') {
+                // إذا كان تسديد (له)
                 if (bal > 0) {
-                     // وضع كامل الدين في الحقل الكلي
+                     // نضع كامل الدين المتبقي في الحقل الكلي
                      document.getElementById('tTotal').value = bal; 
-                     // تصفير الواصل ليكتبه المستخدم
+                     // نصفر الواصل ليدخله المستخدم
                      document.getElementById('tPaid').value = 0; 
-                     // تحديث الباقي
+                     // نقوم بالحساب ليظهر الباقي
                      calcRem(); 
                 } else {
                      document.getElementById('tTotal').value = 0;
@@ -512,9 +537,7 @@
                      calcRem();
                 }
             } else {
-                // إذا كان "عليه (دين جديد)"، نصفر الحقل الكلي ليدخل قيمة الشراء الجديدة
-                // إلا إذا كان هناك قيمة مكتوبة مسبقاً لا نريد مسحها عشوائياً، لكن الأفضل التصفير عند تغيير الاسم
-                // document.getElementById('tTotal').value = '';
+                // إذا كان دين جديد، لا نتدخل في الأرقام
                 calcRem();
             }
         };
@@ -522,10 +545,11 @@
         window.goToRepay = function(name) {
             switchTab('add', 'إضافة عملية');
             document.getElementById('tName').value = name;
+            // اختيار نوع العملية "تسديد"
             document.getElementById('tType').value = 'credit'; 
             updateDebtColors();
             
-            // استدعاء دالة التعبئة لضمان نفس المنطق
+            // استدعاء دالة التعبئة لضبط الأرقام
             autoFillDebt(name);
         };
 
@@ -741,14 +765,22 @@
 
         // --- 4. RENDER & HELPERS ---
         
+        // تعديل في عرض الجدول والسجل لدعم الفلترة وحساب الصافي
         function renderLog() {
+            const searchName = document.getElementById('logSearchName').value.trim();
             const tb = document.getElementById('logBody'); tb.innerHTML='';
             
             let totalDaen = 0;   
             let totalMadeen = 0; 
             let totalWasel = 0;  
 
-            [...transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+            // فلترة البيانات بناءً على الاسم المكتوب في حقل البحث
+            const filteredTransactions = transactions.filter(t => {
+                if(!searchName) return true; // إذا الحقل فارغ اعرض الكل
+                return t.name.includes(searchName);
+            });
+
+            [...filteredTransactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
                 totalWasel += (parseFloat(t.paidVal) || 0);
                 if(t.type === 'credit') {
                     totalDaen += (parseFloat(t.amount) || 0);
@@ -780,9 +812,48 @@
                 tb.appendChild(tr);
             });
 
+            // تحديث الصناديق الثلاثة
             document.getElementById('sumDaen').innerText = totalDaen.toLocaleString();
             document.getElementById('sumMadeen').innerText = totalMadeen.toLocaleString();
             document.getElementById('sumWasel').innerText = totalWasel.toLocaleString();
+
+            // تحديث صندوق الصافي النهائي عند البحث
+            const finalBox = document.getElementById('finalBalanceBox');
+            const finalVal = document.getElementById('finalBalanceValue');
+            
+            if(searchName.length > 0) {
+                // إذا كان هناك بحث، نظهر الصندوق ونحسب الصافي
+                // الصافي = (مجموع المدين) - (مجموع الواصل/التسديدات)
+                // حسب منطقك: أخذ مليون (مدين) - سدد 250 (واصل) - سدد 150 (واصل)
+                
+                // تنبيه: في جدول الحركات، الواصل في عمليات التسديد هو المبلغ المدفوع (paidVal)
+                // وعمليات الدين تزيد في (totalMadeen)
+                
+                // حساب دقيق للرصيد من خلال الدالة الموحدة
+                const balance = getClientBalance(searchName); // قد لا يكون دقيقاً اذا البحث جزئي، لكنه يعطي مؤشرا
+                
+                // لكن الأصح حساب المجاميع الظاهرة في الفلترة الحالية:
+                // صافي الحساب للبيانات المعروضة = (مجموع المدين) - (مجموع الواصل الكلي)
+                const netResult = totalMadeen - totalWasel;
+                
+                finalBox.style.display = 'block';
+                finalVal.innerText = netResult.toLocaleString();
+                
+                // تلوين النتيجة
+                if(netResult > 0) {
+                    finalVal.style.color = '#c62828'; // أحمر (عليه دين)
+                    finalVal.innerText += " (عليه)";
+                } else if(netResult < 0) {
+                    finalVal.style.color = '#2e7d32'; // أخضر (له رصيد)
+                    finalVal.innerText = Math.abs(netResult).toLocaleString() + " (له)";
+                } else {
+                    finalVal.style.color = '#333';
+                    finalVal.innerText += " (خالص)";
+                }
+
+            } else {
+                finalBox.style.display = 'none';
+            }
         }
 
         function renderNetworkLog(filter) {
@@ -974,25 +1045,18 @@
             renderNetworkLog(type);
         };
 
+        // 3. عرض قائمة الزبائن وتفاصيل البروفايل بالمنطق الجديد
         window.renderClientsList = function() {
             const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
             const s = document.getElementById('clientSearch').value;
-            const clientStats = {};
+            
+            // استخدام مجموعة لتخزين الأسماء الفريدة
+            const names = [...new Set(transactions.map(t=>t.name))];
 
-            transactions.forEach(t=>{ 
-                if(!clientStats[t.name]) clientStats[t.name] = { totalDebt: 0, totalCredit: 0, balance: 0 };
-                
-                if(t.type === 'debt') {
-                    clientStats[t.name].totalDebt += (parseFloat(t.amount) || 0);
-                    clientStats[t.name].balance += (parseFloat(t.amount) || 0);
-                } else {
-                    clientStats[t.name].totalCredit += (parseFloat(t.amount) || 0);
-                    clientStats[t.name].balance -= (parseFloat(t.paidVal) || 0); 
-                }
-            });
+            names.filter(n=>n.includes(s)).forEach(n=>{
+                // حساب الرصيد باستخدام الدالة الموحدة
+                const balance = getClientBalance(n);
 
-            Object.keys(clientStats).filter(n=>n.includes(s)).forEach(n=>{
-                const stats = clientStats[n];
                 const d=document.createElement('div'); 
                 d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; 
                 d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center';
@@ -1005,25 +1069,36 @@
                             <b style="font-size:1.1rem;">${n}</b>
                             ${btnRepay}
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#666;">
-                            <span>مدين (أخضر): <span class="text-green bold">${stats.totalDebt}</span></span>
-                            <span>دائن (أحمر): <span class="text-red bold">${stats.totalCredit}</span></span>
-                        </div>
-                        <div style="text-align:left; font-size:0.9rem; margin-top:5px; border-top:1px dashed #eee; padding-top:3px;">
-                            الصافي: <span class="${stats.balance>0?'text-green':'text-red'} bold">${Math.abs(stats.balance)}</span>
+                        <div style="text-align:left; font-size:0.95rem; margin-top:5px; border-top:1px dashed #eee; padding-top:3px;">
+                            الصافي المطلوب: <span class="${balance>0?'text-red':'text-green'} bold">${balance > 0 ? balance : 0}</span>
                         </div>
                     </div>
                 `;
+                
+                // عند الضغط على الزبون
                 d.onclick=()=>{ 
                     document.getElementById('clientsListView').style.display='none';
                     document.getElementById('clientProfileView').style.display='block';
                     document.getElementById('pName').innerText=n;
-                    document.getElementById('pBalance').innerText=Math.abs(stats.balance);
-                    document.getElementById('pStatus').innerText=stats.balance>0?'عليه (دين)':'له (رصيد)';
+                    document.getElementById('pBalance').innerText = balance > 0 ? balance : 0; // الرصيد النهائي
+                    document.getElementById('pStatus').innerText = balance > 0 ? 'عليه (دين مطلوب)' : 'خالص (لا يوجد دين)';
+                    
                     const ptb=document.getElementById('pHistoryBody'); ptb.innerHTML='';
-                    transactions.filter(t=>t.name===n).forEach(t=>{
-                        ptb.innerHTML+=`<tr><td><button class="btn-delete" onclick="delTx('${t.id}')">x</button></td><td>${t.details}</td><td>${t.amount}</td><td>${t.date}</td></tr>`;
-                    });
+                    // تصفية وعرض حركات هذا الزبون
+                    transactions.filter(t=>t.name===n)
+                        .sort((a,b)=>new Date(b.date)-new Date(a.date)) // ترتيب من الأحدث للأقدم
+                        .forEach(t=>{
+                            let rowClass = t.type === 'debt' ? 'text-red' : 'text-green';
+                            let actionText = t.type === 'debt' ? `دين (${t.amount})` : `تسديد (${t.paidVal})`;
+                            
+                            ptb.innerHTML+=`
+                            <tr>
+                                <td><button class="btn-delete" onclick="delTx('${t.id}')">x</button></td>
+                                <td>${t.details}</td>
+                                <td class="${rowClass} bold">${actionText}</td>
+                                <td style="font-size:0.8rem">${t.date}</td>
+                            </tr>`;
+                        });
                 };
                 cEl.appendChild(d);
             });
@@ -1039,7 +1114,7 @@
         document.getElementById('tTotal').addEventListener('input', calcRem);
         document.getElementById('tPaid').addEventListener('input', calcRem);
 
-        // Suggestions Event
+        // Suggestions Event for ADD Tab
         document.getElementById('tName').addEventListener('input', function() {
             const val = this.value;
             const box = document.getElementById('suggestionsBox'); box.innerHTML='';
@@ -1057,6 +1132,34 @@
                     box.appendChild(d);
                 });
             } else box.style.display='none';
+        });
+
+        // --- NEW: Search Logic for DEBT LOG Tab ---
+        document.getElementById('logSearchName').addEventListener('input', function() {
+            const val = this.value;
+            const box = document.getElementById('logSuggestionsBox'); box.innerHTML='';
+            
+            // 1. عرض المقترحات
+            if(val.length > 0) {
+                const names = [...new Set(transactions.map(t=>t.name))].filter(n=>n.includes(val));
+                if(names.length > 0) {
+                    box.style.display='block';
+                    names.forEach(n => {
+                        const d=document.createElement('div'); d.innerText=n;
+                        d.onclick=()=>{ 
+                            document.getElementById('logSearchName').value=n; 
+                            box.style.display='none';
+                            renderLog(); // إعادة رسم الجدول بناءً على الاسم المختار
+                        };
+                        box.appendChild(d);
+                    });
+                } else box.style.display='none';
+            } else {
+                box.style.display='none';
+            }
+
+            // 2. تحديث الجدول مباشرة أثناء الكتابة
+            renderLog();
         });
 
         // Tabs
