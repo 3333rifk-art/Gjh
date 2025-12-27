@@ -1,10 +1,10 @@
-
+َ
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الديون والمخزون - النسخة المعدلة</title>
+    <title>نظام الديون والمخزون - النسخة المحدثة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -16,7 +16,6 @@
             --primary-color: #d4af37;
             --input-bg-debt: #fce8e8;
             --input-bg-credit: #e8fce8;
-            --input-bg-stock: #fff3e0;
             --border-color: #ccc; 
             --text-color: #333;
             --danger-color: #c62828;
@@ -87,13 +86,11 @@
             outline: none; transition: 0.3s;
         }
         
-        /* Colors */
         .type-debt { background-color: var(--input-bg-debt) !important; color: var(--danger-color); }
         .type-credit { background-color: var(--input-bg-credit) !important; color: var(--success-color); }
         
         .text-red { color: var(--danger-color) !important; } 
         .text-green { color: var(--success-color) !important; } 
-        
         .text-blue { color: var(--blue-color); }
         .text-orange { color: var(--orange-color); }
         .bold { font-weight: bold; }
@@ -113,12 +110,19 @@
         .btn-edit { background: var(--blue-color); }
         .btn-delete { background: var(--danger-color); }
         
-        /* زر التسديد */
+        /* أزرار الإجراءات في قائمة الزبائن */
+        .client-actions {
+            display: flex; gap: 5px; justify-content: flex-end;
+        }
         .btn-repay {
             background-color: var(--success-color); color: white;
-            padding: 8px 20px; border-radius: 20px; border: none;
-            font-size: 0.9rem; cursor: pointer; 
-            margin-left: 5px; font-weight: bold;
+            padding: 6px 15px; border-radius: 20px; border: none;
+            font-size: 0.85rem; cursor: pointer; font-weight: bold;
+        }
+        .btn-add-debt {
+            background-color: var(--orange-color); color: white;
+            padding: 6px 15px; border-radius: 20px; border: none;
+            font-size: 0.85rem; cursor: pointer; font-weight: bold;
         }
 
         /* --- Filter Tabs --- */
@@ -138,56 +142,33 @@
         td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.95rem; }
         .inventory-table th { background-color: #e3f2fd; color: #1565c0; }
 
-        /* ملخص الديون */
-        .debt-summary-box {
-            display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;
-        }
-        .debt-stat {
-            flex: 1; min-width: 100px;
-            background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #eee;
-        }
+        /* Debt Summary */
+        .debt-summary-box { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .debt-stat { flex: 1; min-width: 100px; background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #eee; }
         .debt-stat span { display: block; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
         .debt-stat strong { font-size: 1.1rem; }
 
-        /* صافي الرصيد الجديد */
-        .net-balance-box {
-            text-align: center; padding: 15px; background: #fff8e1; border: 2px dashed var(--primary-color);
-            border-radius: 12px; margin-bottom: 20px; display: none; /* مخفي افتراضيا */
-        }
+        /* Net Balance */
+        .net-balance-box { text-align: center; padding: 15px; background: #fff8e1; border: 2px dashed var(--primary-color); border-radius: 12px; margin-bottom: 20px; display: none; }
 
         /* --- Nav --- */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; background: #fff; height: 75px;
-            display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; border-top: 1px solid #eee;
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; height: 75px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; border-top: 1px solid #eee; }
         .nav-item { text-align: center; color: #999; font-size: 0.75rem; flex: 1; cursor: pointer; }
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--primary-color); font-weight: bold; }
-
         .tab-section { display: none; }
         .tab-section.active { display: block; }
 
         /* --- Suggestions --- */
         .input-wrapper { position: relative; }
-        .suggestions-list {
-            position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #aaa;
-            z-index: 100; max-height: 200px; overflow-y: auto; display: none; border-radius: 0 0 10px 10px;
-        }
+        .suggestions-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #aaa; z-index: 100; max-height: 200px; overflow-y: auto; display: none; border-radius: 0 0 10px 10px; }
         .suggestions-list div { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 1rem; }
 
         /* Client Profile */
         #clientProfileView { display: none; }
         
         /* Loading Overlay */
-        #loadingOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); z-index: 9999;
-            display: none;
-            justify-content: center; align-items: center;
-            font-weight: bold; color: var(--primary-color);
-            font-size: 1.2rem;
-        }
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; font-weight: bold; color: var(--primary-color); font-size: 1.2rem; }
     </style>
 </head>
 <body>
@@ -225,15 +206,15 @@
 
                     <label>نوع العملية</label>
                     <select id="tType" class="type-debt">
-                        <option value="debt">عليه (مدين - مطلوب منه)</option>
-                        <option value="credit">له (دائن - تسديد له)</option>
+                        <option value="debt">عليه (دين جديد - مطلوب منه)</option>
+                        <option value="credit">له (تسديد - واصل منه)</option>
                     </select>
 
                     <label>التفاصيل</label>
                     <textarea id="tDetails" rows="2" placeholder="تفاصيل..."></textarea>
 
                     <div style="display: flex; gap: 15px;">
-                        <div style="flex:1"><label>المبلغ الكلي (الدين)</label><input type="number" id="tTotal" placeholder="0"></div>
+                        <div style="flex:1"><label>المبلغ الكلي (للدين)</label><input type="number" id="tTotal" placeholder="0"></div>
                         <div style="flex:1"><label>الواصل (تسديد)</label><input type="number" id="tPaid" value="0"></div>
                     </div>
 
@@ -250,7 +231,6 @@
 
         <div id="tab-log" class="tab-section">
             <div class="card">
-                
                 <div class="input-wrapper" style="margin-bottom: 20px;">
                     <label>بحث في السجل (بالاسم)</label>
                     <input type="text" id="logSearchName" placeholder="اكتب الاسم لعرض سجله..." autocomplete="off">
@@ -264,11 +244,11 @@
 
                 <div class="debt-summary-box">
                     <div class="debt-stat" style="border-bottom: 3px solid #c62828;">
-                        <span>مجموع دائن</span>
+                        <span>مجموع ديون (عليه)</span>
                         <strong id="sumDaen" class="text-red">0</strong>
                     </div>
                     <div class="debt-stat" style="border-bottom: 3px solid #2e7d32;">
-                        <span>مجموع مدين</span>
+                        <span>مجموع دائن (له)</span>
                         <strong id="sumMadeen" class="text-green">0</strong>
                     </div>
                     <div class="debt-stat" style="border-bottom: 3px solid #1565c0;">
@@ -284,7 +264,7 @@
                                 <th>إجراء</th>
                                 <th>الاسم</th>
                                 <th>التفاصيل</th>
-                                <th>نوع الدين</th> 
+                                <th>نوع العملية</th> 
                                 <th>المبلغ الكلي</th>
                                 <th>الواصل</th>
                                 <th>الباقي</th>
@@ -318,7 +298,6 @@
         </div>
 
         <div id="tab-network" class="tab-section">
-            
             <div class="card">
                 <h4 style="margin-bottom:10px;">
                     <i class="fas fa-chart-pie"></i> جرد المخزون حسب الفترة
@@ -332,14 +311,14 @@
                         </select>
                     </div>
 
-                    <label style="font-size:0.9rem; margin-bottom:5px; font-weight:bold;">تحديد الفترة الزمنية (الجرد):</label>
+                    <label style="font-size:0.9rem; margin-bottom:5px; font-weight:bold;">تحديد الفترة الزمنية:</label>
                     <div style="display:flex; gap:10px; align-items:center;">
                         <div style="flex:1;">
-                            <label style="font-size:0.8rem;">من تاريخ:</label>
+                            <label style="font-size:0.8rem;">من:</label>
                             <input type="date" id="netDateFrom" style="margin:0; padding:10px;">
                         </div>
                         <div style="flex:1;">
-                            <label style="font-size:0.8rem;">إلى تاريخ:</label>
+                            <label style="font-size:0.8rem;">إلى:</label>
                             <input type="date" id="netDateTo" style="margin:0; padding:10px;">
                         </div>
                     </div>
@@ -347,15 +326,15 @@
 
                 <div class="table-container">
                     <table class="inventory-table">
-                        <thead><tr><th>النوع</th><th>سحب (مخزون)</th><th>مباع</th><th>المتبقي</th></tr></thead>
+                        <thead><tr><th>النوع</th><th>سحب</th><th>مباع</th><th>المتبقي</th></tr></thead>
                         <tbody id="inventoryBody"></tbody>
                     </table>
                 </div>
                 
                 <div style="margin-top:15px; padding-top:15px; border-top:1px solid #eee; font-size:0.95rem;">
-                    <div style="display:flex; justify-content:space-between;"><span>إجمالي مبيعاتنا:</span><span id="stSales" class="text-green bold">0</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>علينا للشركة (سحب+ديون):</span><span id="stAlihna" class="text-red bold">0</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>لنا (تسديدات واصلة):</span><span id="stLana" class="text-green bold">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>إجمالي مبيعات:</span><span id="stSales" class="text-green bold">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>علينا للشركة:</span><span id="stAlihna" class="text-red bold">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>لنا (واصل):</span><span id="stLana" class="text-green bold">0</span></div>
                     <div style="display:flex; justify-content:space-between; margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;"><span>صافي ذمة الشركة:</span><span id="stNetComp" class="bold">0</span></div>
                 </div>
             </div>
@@ -364,87 +343,64 @@
                 <h4 style="margin-bottom:15px;">تسجيل حركة (بيع / سحب / ديون)</h4>
                 <form id="networkForm">
                     <input type="hidden" id="netEditId">
-                    
                     <div class="net-type-toggle">
                         <div id="optStock" class="net-opt" data-type="stock">سحب من الشركة</div>
                         <div id="optSale" class="net-opt active" data-type="sale">بيع للزبون</div>
                         <div id="optPay" class="net-opt" data-type="pay">ديون الشركة</div>
                     </div>
                     <input type="hidden" id="netActionType" value="sale">
-
                     <label>التاريخ</label>
                     <input type="date" id="nDate">
-
                     <div id="stockFields" style="display:none;">
-                        <label style="color:var(--orange-color); font-weight:bold;">نوع الخط (اكتب اسم النوع الجديد)</label>
-                        <input type="text" id="nStockType" placeholder="مثال: خط طالب، خط ذهبي، داتا...">
-                        
+                        <label style="color:var(--orange-color); font-weight:bold;">نوع الخط</label>
+                        <input type="text" id="nStockType" placeholder="اسم النوع...">
                         <div style="display:flex; gap:10px;">
-                            <div style="flex:1"><label>العدد المسحوب</label><input type="number" id="nStockQty" placeholder="العدد"></div>
+                            <div style="flex:1"><label>العدد</label><input type="number" id="nStockQty" placeholder="العدد"></div>
                             <div style="flex:1"><label>الكلفة الكلية</label><input type="number" id="nStockCost" placeholder="0"></div>
                         </div>
                     </div>
-
                     <div id="saleFields">
-                        <label style="color:var(--blue-color); font-weight:bold;">اختر نوع الخط (من المخزون)</label>
-                        <select id="nSaleType">
-                            </select>
-
+                        <label style="color:var(--blue-color); font-weight:bold;">اختر نوع الخط</label>
+                        <select id="nSaleType"></select>
                         <div class="input-wrapper">
                             <label>اسم الزبون</label>
                             <input type="text" id="nName" placeholder="الاسم">
                         </div>
-                        
                         <div style="display:flex; gap:10px;">
                             <div style="flex:1"><label>العدد المباع</label><input type="number" id="nSaleQty" value="1" placeholder="1"></div>
                             <div style="flex:2"><label>رقم الهاتف</label><input type="text" id="nPhone"></div>
                         </div>
-
                         <div style="display:flex; gap:10px;">
                             <div style="flex:1"><label>سعر البيع</label><input type="number" id="nSalePrice"></div>
-                            <div style="flex:1"><label>سعر التكلفة (علينا)</label><input type="number" id="nUnitCost"></div>
+                            <div style="flex:1"><label>سعر التكلفة</label><input type="number" id="nUnitCost"></div>
                         </div>
                     </div>
-
                     <div id="payFields" style="display:none;">
                         <label>نوع القيد</label>
                         <select id="nCompDebtType" class="type-debt">
                             <option value="lana">دائن (يطلب)</option>
                             <option value="alihna">مدين (مطلوب)</option>
                         </select>
-
                         <label>المبلغ</label>
                         <input type="number" id="nPayAmount">
                         <label>التفاصيل</label>
-                        <input type="text" id="nNotes" placeholder="مثال: تسديد للمندوب..">
+                        <input type="text" id="nNotes" placeholder="تفاصيل...">
                     </div>
-
                     <button type="button" class="btn btn-save" id="btnSaveNetwork"><i class="fas fa-save"></i> حفظ</button>
                 </form>
             </div>
 
             <div class="card">
                 <h4 style="margin-bottom:10px;">سجل الحركات</h4>
-                
                 <div class="filter-tabs">
                     <div class="filter-tab active" data-filter="all">الكل</div>
                     <div class="filter-tab" data-filter="stock">سحب مخزون</div>
                     <div class="filter-tab" data-filter="sale">المبيعات</div>
                     <div class="filter-tab" data-filter="pay">ديون الشركة</div>
                 </div>
-
                 <div class="table-container">
                     <table id="networkTable">
-                        <thead>
-                            <tr>
-                                <th>تعديل</th>
-                                <th>النوع</th>
-                                <th>التفاصيل</th>
-                                <th>العدد</th> 
-                                <th>الواصل/السعر</th> 
-                                <th>التاريخ</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>تعديل</th><th>النوع</th><th>التفاصيل</th><th>العدد</th><th>الواصل/السعر</th><th>التاريخ</th></tr></thead>
                         <tbody id="networkBody"></tbody>
                     </table>
                 </div>
@@ -464,7 +420,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        // 1. Firebase Configuration
+        // 1. Firebase Configuration (تأكد من استخدام بياناتك الصحيحة)
         const firebaseConfig = {
             apiKey: "AIzaSyCpSnxGwzMmlAei23LVXOsH2vs_cGAMesY",
             authDomain: "gghdkdi-919dc.firebaseapp.com",
@@ -475,7 +431,6 @@
             measurementId: "G-CRVZ29VQMQ"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -483,33 +438,29 @@
         let transactions = [];
         let networkData = [];
         let currentNetFilter = 'all';
-
-        // --- UI ELEMENTS ---
         const loadingOverlay = document.getElementById('loadingOverlay');
 
-        // --- SITE LOCK LOGIC ---
+        // --- SITE LOCK ---
         window.unlockSite = function() {
             const pass = document.getElementById('sitePassInput').value;
             if(pass === "1001") {
                 document.getElementById('siteLockOverlay').style.display = 'none';
                 loadAllData();
-            } else {
-                alert("كلمة المرور خاطئة!");
-            }
+            } else { alert("كلمة المرور خاطئة!"); }
         };
 
-        // --- CORE CLIENT LOGIC UPDATES ---
-        
-        // 1. منطق حساب الرصيد بدقة: (مجموع الديون) - (مجموع التسديدات)
+        // --- CALCULATION LOGIC ---
+        // دالة حساب رصيد الزبون (ديون - تسديدات)
         function getClientBalance(name) {
             let balance = 0;
             transactions.forEach(t => {
                 if(t.name === name) {
+                    // إذا كان دين (عليه) نضيف الباقي من هذا الدين
                     if(t.type === 'debt') {
-                        // عملية دين: نضيف المبلغ المتبقي (amount) على الدين
                         balance += (parseFloat(t.amount) || 0);
-                    } else {
-                        // عملية تسديد (credit): ننقص المبلغ الذي دفعه الزبون (paidVal) من الدين
+                    } 
+                    // إذا كان تسديد (له) نطرح المبلغ الذي سدده
+                    else if(t.type === 'credit') {
                         balance -= (parseFloat(t.paidVal) || 0);
                     }
                 }
@@ -517,19 +468,16 @@
             return balance;
         }
 
-        // 2. تعبئة الحقول تلقائياً عند اختيار تسديد
+        // --- AUTO FILL (LOGIC UPDATED) ---
         window.autoFillDebt = function(name) {
             const type = document.getElementById('tType').value;
             const bal = getClientBalance(name);
             
             if(type === 'credit') {
-                // تعديل: إذا كان تسديد (له)، نضع الدين الكلي الحالي في حقل المبلغ الكلي
+                // إذا كان تسديد: نضع الدين الكلي الحالي في خانة المجموع ليسهل التسديد
                 if (bal > 0) {
-                     // المبلغ الكلي = الدين الحالي
                      document.getElementById('tTotal').value = bal; 
-                     // الواصل = 0 (ليقوم المستخدم بإدخاله)
                      document.getElementById('tPaid').value = 0; 
-                     // الباقي = سيتم حسابه تلقائيا (الكلي - الواصل)
                      calcRem(); 
                 } else {
                      document.getElementById('tTotal').value = 0;
@@ -537,23 +485,35 @@
                      calcRem();
                 }
             } else {
-                // إذا كان دين جديد، لا نتدخل في الأرقام
-                calcRem();
+                // إذا كان إضافة دين جديد: نفرغ الحقول ليكتب المستخدم الدين الجديد فقط
+                // لا نضع الرصيد السابق هنا، لأن النظام سيجمع الدين الجديد مع القديم تلقائياً
+                document.getElementById('tTotal').value = '';
+                document.getElementById('tPaid').value = '';
+                document.getElementById('tRemaining').value = '';
             }
         };
 
         window.goToRepay = function(name) {
             switchTab('add', 'إضافة عملية');
             document.getElementById('tName').value = name;
-            // اختيار نوع العملية "تسديد"
             document.getElementById('tType').value = 'credit'; 
             updateDebtColors();
-            
-            // استدعاء دالة التعبئة لضبط الأرقام
             autoFillDebt(name);
         };
 
-        // --- 1. DATA LOADING FUNCTIONS ---
+        // دالة الزر الجديد "إضافة دين"
+        window.goToAddDebt = function(name) {
+            switchTab('add', 'إضافة عملية');
+            document.getElementById('tName').value = name;
+            document.getElementById('tType').value = 'debt'; // تحديد نوع دين
+            updateDebtColors();
+            // نفرغ الحقول ليدخل الدين الجديد
+            document.getElementById('tTotal').value = '';
+            document.getElementById('tPaid').value = '';
+            document.getElementById('tRemaining').value = '';
+        };
+
+        // --- DATA LOADING ---
         async function loadAllData() {
             loadingOverlay.style.display = 'flex';
             try {
@@ -572,12 +532,11 @@
             } catch (error) {
                 console.error("Error loading data:", error);
                 loadingOverlay.style.display = 'none';
-                alert("خطأ في تحميل البيانات. تأكد من الإنترنت.");
+                alert("خطأ في تحميل البيانات.");
             }
         }
 
-        // --- 2. DEBT FUNCTIONS ---
-        
+        // --- SAVING DEBT ---
         window.saveData = async function() {
             const id = document.getElementById('editId').value;
             const dataObj = {
@@ -607,7 +566,7 @@
                 await loadAllData(); 
             } catch (e) {
                 loadingOverlay.style.display = 'none';
-                alert("فشل الحفظ في: debt_transactions\nالسبب: " + e.message);
+                alert("فشل الحفظ: " + e.message);
             }
         };
 
@@ -615,7 +574,6 @@
             if(confirm('حذف؟')) {
                 const pass = prompt("كلمة المرور:");
                 if(pass !== "112") return alert("خطأ");
-
                 loadingOverlay.style.display = 'flex';
                 try {
                     await deleteDoc(doc(db, "debt_transactions", id));
@@ -630,7 +588,6 @@
         window.editTx = function(id) {
             const pass = prompt("كلمة المرور:");
             if(pass !== "112") return alert("خطأ");
-            
             const t = transactions.find(x => x.id === id);
             if(t) {
                 document.getElementById('editId').value = t.id;
@@ -646,13 +603,11 @@
             }
         };
 
-        // --- 3. NETWORK FUNCTIONS ---
-
+        // --- SAVING NETWORK ---
         window.saveNetwork = async function() {
             const id = document.getElementById('netEditId').value;
             const action = document.getElementById('netActionType').value;
             const date = document.getElementById('nDate').value;
-
             let typeVal = '';
             if(action === 'stock') {
                 typeVal = document.getElementById('nStockType').value.trim();
@@ -661,13 +616,9 @@
                 typeVal = document.getElementById('nSaleType').value;
                 if(!typeVal) return alert('المخزون فارغ');
             }
-
             let finalSalePrice = parseFloat(document.getElementById('nSalePrice').value)||0;
             let qty = parseFloat(document.getElementById('nSaleQty').value)||1;
-            
-            if(action === 'sale') {
-                finalSalePrice = finalSalePrice * qty; 
-            }
+            if(action === 'sale') finalSalePrice = finalSalePrice * qty; 
 
             const dataObj = {
                 date: date,
@@ -685,7 +636,6 @@
                 notes: document.getElementById('nNotes').value
             };
 
-            // Validations
             if(action==='stock' && dataObj.stockQty<=0) return alert('العدد مطلوب');
             if(action==='sale' && dataObj.saleQty<=0) return alert('العدد مطلوب');
             if(action==='pay' && dataObj.payAmount<=0) return alert('المبلغ مطلوب');
@@ -698,18 +648,15 @@
                     await addDoc(collection(db, "network_transactions"), dataObj);
                 }
                 alert('تم الحفظ بنجاح');
-                
                 document.getElementById('networkForm').reset();
                 document.getElementById('netEditId').value = '';
                 document.getElementById('nDate').value = new Date().toISOString().split('T')[0];
                 document.getElementById('nSaleQty').value = 1;
-                
                 await loadAllData();
                 setNetType('sale'); 
-
             } catch (e) {
                 loadingOverlay.style.display = 'none';
-                alert("فشل الحفظ في: network_transactions\nالسبب: " + e.message);
+                alert("فشل الحفظ: " + e.message);
             }
         };
 
@@ -717,7 +664,6 @@
             if(confirm('حذف؟')) {
                 const pass = prompt("كلمة المرور:");
                 if(pass !== "112") return alert("خطأ");
-
                 loadingOverlay.style.display = 'flex';
                 try {
                     await deleteDoc(doc(db, "network_transactions", id));
@@ -732,14 +678,11 @@
         window.editNet = function(id) {
             const pass = prompt("كلمة المرور:");
             if(pass !== "112") return alert("خطأ");
-
             const n = networkData.find(x => x.id === id);
             if(n) {
                 document.getElementById('netEditId').value = n.id;
                 document.getElementById('nDate').value = n.date;
-                
                 setNetType(n.action);
-
                 if(n.action==='stock') {
                     document.getElementById('nStockType').value=n.simType;
                     document.getElementById('nStockQty').value=n.stockQty;
@@ -762,42 +705,29 @@
             }
         };
 
-
-        // --- 4. RENDER & HELPERS ---
-        
-        // تعديل في عرض الجدول والسجل لدعم الفلترة وحساب الصافي
+        // --- RENDER FUNCTIONS ---
         function renderLog() {
             const searchName = document.getElementById('logSearchName').value.trim();
             const tb = document.getElementById('logBody'); tb.innerHTML='';
             
-            let totalDaen = 0;   
-            let totalMadeen = 0; 
-            let totalWasel = 0;  
+            let totalDaen = 0, totalMadeen = 0, totalWasel = 0;  
 
-            // فلترة البيانات بناءً على الاسم المكتوب في حقل البحث
             const filteredTransactions = transactions.filter(t => {
-                if(!searchName) return true; // إذا الحقل فارغ اعرض الكل
+                if(!searchName) return true;
                 return t.name.includes(searchName);
             });
 
             [...filteredTransactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
                 totalWasel += (parseFloat(t.paidVal) || 0);
                 if(t.type === 'credit') {
-                    totalDaen += (parseFloat(t.amount) || 0);
+                    totalDaen += (parseFloat(t.amount) || 0); // في السجل نحسب القيم كما هي
                 } else {
                     totalMadeen += (parseFloat(t.amount) || 0);
                 }
 
                 const tr=document.createElement('tr');
-                let typeText = "";
-                let typeClass = "";
-                if(t.type === 'credit') {
-                    typeText = "دائن";
-                    typeClass = "text-red bold"; 
-                } else {
-                    typeText = "مدين";
-                    typeClass = "text-green bold"; 
-                }
+                let typeText = t.type === 'credit' ? "دائن (تسديد)" : "مدين (عليه)";
+                let typeClass = t.type === 'credit' ? "text-red bold" : "text-green bold";
 
                 tr.innerHTML=`
                     <td><div class="btn-action-group"><button class="btn-edit" onclick="editTx('${t.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delTx('${t.id}')"><i class="fas fa-trash"></i></button></div></td>
@@ -812,34 +742,27 @@
                 tb.appendChild(tr);
             });
 
-            // تحديث الصناديق الثلاثة
             document.getElementById('sumDaen').innerText = totalDaen.toLocaleString();
             document.getElementById('sumMadeen').innerText = totalMadeen.toLocaleString();
             document.getElementById('sumWasel').innerText = totalWasel.toLocaleString();
 
-            // تحديث صندوق الصافي النهائي عند البحث
             const finalBox = document.getElementById('finalBalanceBox');
             const finalVal = document.getElementById('finalBalanceValue');
             
             if(searchName.length > 0) {
-                // تعديل: حساب الصافي بدقة بناءً على دالة الرصيد الموحدة
                 const netResult = getClientBalance(searchName);
-                
                 finalBox.style.display = 'block';
                 finalVal.innerText = netResult.toLocaleString();
-                
-                // تلوين النتيجة
                 if(netResult > 0) {
-                    finalVal.style.color = '#c62828'; // أحمر (عليه دين)
+                    finalVal.style.color = '#c62828'; // عليه دين
                     finalVal.innerText += " (عليه)";
                 } else if(netResult < 0) {
-                    finalVal.style.color = '#2e7d32'; // أخضر (له رصيد)
+                    finalVal.style.color = '#2e7d32'; // يطلبنا
                     finalVal.innerText = Math.abs(netResult).toLocaleString() + " (له)";
                 } else {
                     finalVal.style.color = '#333';
                     finalVal.innerText += " (خالص)";
                 }
-
             } else {
                 finalBox.style.display = 'none';
             }
@@ -848,10 +771,7 @@
         function renderNetworkLog(filter) {
             const tb = document.getElementById('networkBody'); tb.innerHTML='';
             let data = [...networkData].sort((a,b)=>new Date(b.date)-new Date(a.date));
-            
-            if(filter !== 'all') {
-                data = data.filter(n => n.action === filter);
-            }
+            if(filter !== 'all') data = data.filter(n => n.action === filter);
 
             data.forEach(n => {
                 const tr = document.createElement('tr');
@@ -874,7 +794,6 @@
                     qtyCol=`-`;
                     moneyCol=n.payAmount;
                 }
-
                 tr.innerHTML=`
                     <td><div class="btn-action-group"><button class="btn-edit" onclick="editNet('${n.id}')"><i class="fas fa-pen"></i></button><button class="btn-delete" onclick="delNet('${n.id}')"><i class="fas fa-trash"></i></button></div></td>
                     <td>${typeTxt}</td><td>${info}</td>
@@ -898,7 +817,6 @@
             networkData.forEach(n => {
                 if(dateFrom && n.date < dateFrom) return;
                 if(dateTo && n.date > dateTo) return;
-
                 if(n.action==='stock') {
                     if(!report[n.simType]) report[n.simType] = {pulled:0, sold:0};
                     report[n.simType].pulled += n.stockQty;
@@ -908,11 +826,8 @@
                     report[n.simType].sold += (n.saleQty || 1); 
                     totalSales += n.salePrice;
                 } else if(n.action==='pay') {
-                    if(n.compDebtType === 'alihna') {
-                        totalAlihna += n.payAmount;
-                    } else {
-                        totalLana += n.payAmount;
-                    }
+                    if(n.compDebtType === 'alihna') totalAlihna += n.payAmount;
+                    else totalLana += n.payAmount;
                 }
             });
 
@@ -920,17 +835,10 @@
                 if(typeFilter !== 'all' && key !== typeFilter) return;
                 const d = report[key];
                 const rem = d.pulled - d.sold;
-                
-                tb.innerHTML += `<tr>
-                    <td class="text-blue bold">${key}</td>
-                    <td class="text-orange">${d.pulled}</td>
-                    <td class="text-green">${d.sold}</td>
-                    <td style="background:#e3f2fd; font-weight:bold;">${rem}</td>
-                </tr>`;
+                tb.innerHTML += `<tr><td class="text-blue bold">${key}</td><td class="text-orange">${d.pulled}</td><td class="text-green">${d.sold}</td><td style="background:#e3f2fd; font-weight:bold;">${rem}</td></tr>`;
             });
 
-            if(tb.innerHTML==='') tb.innerHTML='<tr><td colspan="4" style="color:#999">لا توجد بيانات ضمن هذه الفترة</td></tr>';
-
+            if(tb.innerHTML==='') tb.innerHTML='<tr><td colspan="4" style="color:#999">لا توجد بيانات</td></tr>';
             const netComp = totalLana - totalAlihna;
             document.getElementById('stSales').innerText = totalSales.toLocaleString();
             document.getElementById('stAlihna').innerText = totalAlihna.toLocaleString();
@@ -941,7 +849,6 @@
             netEl.innerText += (netComp >= 0 ? ' (لنا)' : ' (علينا)');
         };
 
-        // UI Helpers
         function switchTab(tabId, title) {
             document.getElementById('pageTitle').innerText = title;
             document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
@@ -960,7 +867,6 @@
             const type = document.getElementById('tType').value;
             const bg = type === 'debt' ? '#fce8e8' : '#e8fce8';
             ['tType','tName','tDetails'].forEach(id => document.getElementById(id).style.background = bg);
-            
             const name = document.getElementById('tName').value;
             if(name) autoFillDebt(name);
         }
@@ -975,43 +881,33 @@
             const types = new Set();
             networkData.forEach(n => { if(n.action === 'stock' && n.simType) types.add(n.simType); });
             const typeArr = Array.from(types);
-
             const saleSelect = document.getElementById('nSaleType');
             const filterSelect = document.getElementById('netFilterType');
             const currentFilterVal = filterSelect.value;
-
             saleSelect.innerHTML = '';
             filterSelect.innerHTML = '<option value="all">كل الأنواع</option>';
-
-            if(typeArr.length === 0) {
-                saleSelect.innerHTML = '<option value="">المخزون فارغ</option>';
-            } else {
-                typeArr.forEach(t => {
-                    const opt1 = document.createElement('option'); opt1.value = t; opt1.innerText = t; saleSelect.appendChild(opt1);
-                    const opt2 = document.createElement('option'); opt2.value = t; opt2.innerText = t; filterSelect.appendChild(opt2);
-                });
-            }
+            if(typeArr.length === 0) saleSelect.innerHTML = '<option value="">المخزون فارغ</option>';
+            else typeArr.forEach(t => {
+                const opt1 = document.createElement('option'); opt1.value = t; opt1.innerText = t; saleSelect.appendChild(opt1);
+                const opt2 = document.createElement('option'); opt2.value = t; opt2.innerText = t; filterSelect.appendChild(opt2);
+            });
             filterSelect.value = currentFilterVal;
         }
 
         window.setNetType = function(type) {
             document.getElementById('netActionType').value = type;
             document.querySelectorAll('.net-opt').forEach(el=>el.classList.remove('active'));
-            
             document.getElementById('stockFields').style.display = 'none';
             document.getElementById('saleFields').style.display = 'none';
             document.getElementById('payFields').style.display = 'none';
-
             if(type==='sale') { 
                 document.querySelector('.net-opt[data-type="sale"]').classList.add('active'); 
                 document.getElementById('saleFields').style.display = 'block';
                 populateSaleTypes(); 
-            }
-            else if(type==='stock') { 
+            } else if(type==='stock') { 
                 document.querySelector('.net-opt[data-type="stock"]').classList.add('active'); 
                 document.getElementById('stockFields').style.display = 'block';
-            }
-            else { 
+            } else { 
                 document.querySelector('.net-opt[data-type="pay"]').classList.add('active'); 
                 document.getElementById('payFields').style.display = 'block';
                 updateCompColors();
@@ -1020,11 +916,8 @@
 
         window.updateCompColors = function() {
             const sel = document.getElementById('nCompDebtType');
-            if(sel.value === 'lana') {
-                sel.style.backgroundColor = '#e8fce8'; sel.style.color = 'green';
-            } else {
-                sel.style.backgroundColor = '#fce8e8'; sel.style.color = '#c62828';
-            }
+            if(sel.value === 'lana') { sel.style.backgroundColor = '#e8fce8'; sel.style.color = 'green'; }
+            else { sel.style.backgroundColor = '#fce8e8'; sel.style.color = '#c62828'; }
         };
 
         window.filterNetLog = function(type, btn) {
@@ -1034,82 +927,70 @@
             renderNetworkLog(type);
         };
 
-        // 3. عرض قائمة الزبائن وتفاصيل البروفايل بالمنطق الجديد
+        // --- RENDER CLIENTS (UPDATED) ---
         window.renderClientsList = function() {
             const cEl = document.getElementById('clientsContainer'); cEl.innerHTML='';
             const s = document.getElementById('clientSearch').value;
-            
-            // استخدام مجموعة لتخزين الأسماء الفريدة
             const names = [...new Set(transactions.map(t=>t.name))];
 
             names.filter(n=>n.includes(s)).forEach(n=>{
-                // حساب الرصيد باستخدام الدالة الموحدة
-                const balance = getClientBalance(n);
-
+                const balance = getClientBalance(n); // حساب الرصيد المتراكم الصحيح
                 const d=document.createElement('div'); 
                 d.style.padding='15px'; d.style.borderBottom='1px solid #eee'; 
                 d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center';
+
+                // أزرار الزبون: تسديد + إضافة دين
+                const btnRepay = `<button class="btn-repay" onclick="event.stopPropagation(); goToRepay('${n}')">تسديد</button>`;
+                const btnAddDebt = `<button class="btn-add-debt" onclick="event.stopPropagation(); goToAddDebt('${n}')">إضافة دين</button>`;
                 
-                // تعديل: إضافة عمود/حقل للرصيد الصافي قبل زر التسديد
+                // عرض الرصيد بشكل واضح
                 const balanceDisplay = `
-                    <div style="text-align:center; min-width:80px;">
-                        <span style="display:block; font-size:0.75rem; color:#666;">الباقي</span>
-                        <span style="font-weight:bold; color:${balance > 0 ? '#c62828' : '#2e7d32'};">${balance > 0 ? balance : 0}</span>
+                    <div style="text-align:center; min-width:80px; margin:0 10px;">
+                        <span style="display:block; font-size:0.75rem; color:#666;">الصافي</span>
+                        <span style="font-weight:bold; color:${balance > 0 ? '#c62828' : '#2e7d32'};">${balance}</span>
                     </div>
                 `;
 
-                const btnRepay = `<button class="btn-repay" onclick="event.stopPropagation(); goToRepay('${n}')">تسديد</button>`;
-                
                 d.innerHTML=`
                     <div style="display:flex; align-items:center; flex:1;">
                          <b style="font-size:1.1rem; flex:1;">${n}</b>
                     </div>
                     <div style="display:flex; align-items:center;">
                         ${balanceDisplay}
-                        ${btnRepay}
+                        <div class="client-actions">
+                            ${btnRepay}
+                            ${btnAddDebt}
+                        </div>
                     </div>
                 `;
-                
-                // عند الضغط على الزبون
                 d.onclick=()=>{ 
                     document.getElementById('clientsListView').style.display='none';
                     document.getElementById('clientProfileView').style.display='block';
                     document.getElementById('pName').innerText=n;
-                    document.getElementById('pBalance').innerText = balance > 0 ? balance : 0; // الرصيد النهائي
-                    document.getElementById('pStatus').innerText = balance > 0 ? 'عليه (دين مطلوب)' : 'خالص (لا يوجد دين)';
+                    document.getElementById('pBalance').innerText = balance;
+                    document.getElementById('pStatus').innerText = balance > 0 ? 'عليه (مطلوب)' : 'له (يطلبنا)';
                     
                     const ptb=document.getElementById('pHistoryBody'); ptb.innerHTML='';
-                    // تصفية وعرض حركات هذا الزبون
                     transactions.filter(t=>t.name===n)
-                        .sort((a,b)=>new Date(b.date)-new Date(a.date)) // ترتيب من الأحدث للأقدم
+                        .sort((a,b)=>new Date(b.date)-new Date(a.date))
                         .forEach(t=>{
                             let rowClass = t.type === 'debt' ? 'text-red' : 'text-green';
-                            let actionText = t.type === 'debt' ? `دين (${t.amount})` : `تسديد (${t.paidVal})`;
-                            
-                            ptb.innerHTML+=`
-                            <tr>
-                                <td><button class="btn-delete" onclick="delTx('${t.id}')">x</button></td>
-                                <td>${t.details}</td>
-                                <td class="${rowClass} bold">${actionText}</td>
-                                <td style="font-size:0.8rem">${t.date}</td>
-                            </tr>`;
+                            let amountDisplay = t.type === 'debt' ? `+${t.amount}` : `-${t.paidVal}`;
+                            ptb.innerHTML+=`<tr><td><button class="btn-delete" onclick="delTx('${t.id}')">x</button></td><td>${t.details}</td><td class="${rowClass} bold">${amountDisplay}</td><td style="font-size:0.8rem">${t.date}</td></tr>`;
                         });
                 };
                 cEl.appendChild(d);
             });
         };
 
-        // --- EVENTS ---
+        // Event Listeners
         document.getElementById('btnSaveDebt').addEventListener('click', saveData);
         document.getElementById('btnResetDebt').addEventListener('click', () => { document.getElementById('debtForm').reset(); document.getElementById('tDate').value=new Date().toISOString().split('T')[0]; });
-        
         document.getElementById('btnSaveNetwork').addEventListener('click', saveNetwork);
-        
         document.getElementById('tType').addEventListener('change', updateDebtColors);
         document.getElementById('tTotal').addEventListener('input', calcRem);
         document.getElementById('tPaid').addEventListener('input', calcRem);
 
-        // Suggestions Event for ADD Tab
         document.getElementById('tName').addEventListener('input', function() {
             const val = this.value;
             const box = document.getElementById('suggestionsBox'); box.innerHTML='';
@@ -1119,45 +1000,29 @@
                 box.style.display='block';
                 names.forEach(n => {
                     const d=document.createElement('div'); d.innerText=n;
-                    d.onclick=()=>{ 
-                        document.getElementById('tName').value=n; 
-                        box.style.display='none';
-                        autoFillDebt(n);
-                    };
+                    d.onclick=()=>{ document.getElementById('tName').value=n; box.style.display='none'; autoFillDebt(n); };
                     box.appendChild(d);
                 });
             } else box.style.display='none';
         });
 
-        // --- NEW: Search Logic for DEBT LOG Tab ---
         document.getElementById('logSearchName').addEventListener('input', function() {
             const val = this.value;
             const box = document.getElementById('logSuggestionsBox'); box.innerHTML='';
-            
-            // 1. عرض المقترحات
             if(val.length > 0) {
                 const names = [...new Set(transactions.map(t=>t.name))].filter(n=>n.includes(val));
                 if(names.length > 0) {
                     box.style.display='block';
                     names.forEach(n => {
                         const d=document.createElement('div'); d.innerText=n;
-                        d.onclick=()=>{ 
-                            document.getElementById('logSearchName').value=n; 
-                            box.style.display='none';
-                            renderLog(); // إعادة رسم الجدول بناءً على الاسم المختار
-                        };
+                        d.onclick=()=>{ document.getElementById('logSearchName').value=n; box.style.display='none'; renderLog(); };
                         box.appendChild(d);
                     });
                 } else box.style.display='none';
-            } else {
-                box.style.display='none';
-            }
-
-            // 2. تحديث الجدول مباشرة أثناء الكتابة
+            } else { box.style.display='none'; }
             renderLog();
         });
 
-        // Tabs
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
                 const tab = this.getAttribute('data-tab');
@@ -1169,51 +1034,29 @@
             });
         });
 
-        // Filters
-        document.querySelectorAll('.filter-tab').forEach(item => {
-            item.addEventListener('click', function() {
-                filterNetLog(this.getAttribute('data-filter'), this);
-            });
-        });
-
-        // Net Types
-        document.querySelectorAll('.net-opt').forEach(item => {
-            item.addEventListener('click', function() {
-                setNetType(this.getAttribute('data-type'));
-            });
-        });
-
-        // Back Buttons
-        document.getElementById('btnBackToClients').onclick = function() {
-            document.getElementById('clientProfileView').style.display='none'; 
-            document.getElementById('clientsListView').style.display='block';
-        };
+        document.querySelectorAll('.filter-tab').forEach(item => { item.addEventListener('click', function() { filterNetLog(this.getAttribute('data-filter'), this); }); });
+        document.querySelectorAll('.net-opt').forEach(item => { item.addEventListener('click', function() { setNetType(this.getAttribute('data-type')); }); });
+        document.getElementById('btnBackToClients').onclick = function() { document.getElementById('clientProfileView').style.display='none'; document.getElementById('clientsListView').style.display='block'; };
 
         document.getElementById('btnDeleteClient').onclick = async function() {
-             if(confirm('حذف الزبون؟')) {
+             if(confirm('حذف الزبون بالكامل؟')) {
                  const pass = prompt("كلمة المرور:");
                  if(pass !== "112") return alert("خطأ");
-                 
                  const n=document.getElementById('pName').innerText;
                  const toDelete = transactions.filter(t=>t.name===n);
-                 
                  loadingOverlay.style.display = 'flex';
                  try {
-                     for(let t of toDelete) {
-                         await deleteDoc(doc(db, "debt_transactions", t.id));
-                     }
+                     for(let t of toDelete) { await deleteDoc(doc(db, "debt_transactions", t.id)); }
                      await loadAllData();
                      document.getElementById('clientProfileView').style.display='none'; 
                      document.getElementById('clientsListView').style.display='block';
                      renderClientsList();
-                 } catch(e) {
-                     loadingOverlay.style.display = 'none';
-                     alert("خطأ: " + e.message);
-                 }
+                 } catch(e) { loadingOverlay.style.display = 'none'; alert("خطأ: " + e.message); }
              }
         };
 
-        // Dates for Network
+        document.getElementById('clientSearch').addEventListener('input', renderClientsList);
+
         const dateObj = new Date();
         const firstDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString().split('T')[0];
         const today = new Date().toISOString().split('T')[0];
